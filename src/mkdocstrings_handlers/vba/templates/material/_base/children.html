@@ -1,0 +1,16 @@
+{{ log.debug() }}
+{% if obj.procedures %}
+
+  <div class="doc doc-children">
+
+    {% for procedure in obj.procedures %}
+
+      {% with procedure = procedure %}
+        {% include "procedure.html" with context %}
+      {% endwith %}
+
+    {% endfor %}
+
+  </div>
+
+{% endif %}

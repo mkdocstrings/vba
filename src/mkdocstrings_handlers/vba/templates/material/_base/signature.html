@@ -1,0 +1,13 @@
+{{ log.debug() }}
+{%- if config.show_signature -%}
+  {%- with -%}
+
+    (
+      {%- for parameter in procedure.signature.args -%}
+        {{ parameter.render() }}
+        {%- if not loop.last %}, {% endif -%}
+      {%- endfor -%}
+    )
+
+  {%- endwith -%}
+{%- endif -%}

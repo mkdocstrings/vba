@@ -1,0 +1,65 @@
+{{ log.debug() }}
+{% if config.show_if_no_docstring or procedure.has_docstrings %}
+
+  <div class="doc doc-object doc-procedure">
+  {% with html_id = procedure.signature.name %}
+
+    {% if not root or config.show_root_heading %}
+
+      {% filter heading(heading_level,
+          role="procedure",
+          id=html_id,
+          class="doc doc-heading",
+          toc_label=procedure.signature.name ~ "()") %}
+
+        {% if config.separate_signature %}
+          {{ procedure.signature.name }}()
+        {% else %}
+          {% filter highlight(language="vba", inline=True) %}
+            {{ procedure.signature.name }}
+            {% include "signature.html" with context %}
+          {% endfilter %}
+        {% endif %}
+
+        {% with labels = procedure.labels %}
+          {% include "labels.html" with context %}
+        {% endwith %}
+
+      {% endfilter %}
+
+      {% if config.separate_signature %}
+        {% filter highlight(language="vba", inline=False) %}
+          {{ procedure.signature.name }}
+          {% include "signature.html" with context %}
+        {% endfilter %}
+      {% endif %}
+
+    {% else %}
+      {% if config.show_root_toc_entry %}
+        {% filter heading(heading_level,
+            role="procedure",
+            id=html_id,
+            toc_label=procedure.signature.name,
+            hidden=True) %}
+        {% endfilter %}
+      {% endif %}
+      {% set heading_level = heading_level - 1 %}
+    {% endif %}
+
+    <div class="doc doc-contents {% if root %}first{% endif %}">
+      {% with docstring_sections = procedure.docstring.parsed %}
+        {% include "docstring.html" with context %}
+      {% endwith %}
+
+      {% if config.show_source and procedure.source %}
+        <details class="quote">
+          <summary>Source code</summary>
+          {{ "\n".join(procedure.source)|highlight(language="vba", linestart=procedure.first_line, linenums=True) }}
+        </details>
+      {% endif %}
+    </div>
+
+  {% endwith %}
+  </div>
+
+{% endif %}

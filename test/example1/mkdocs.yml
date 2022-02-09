@@ -1,0 +1,9 @@
+site_name: Example 1
+site_url: ""
+use_directory_urls: false
+theme: material
+plugins:
+  - mkdocstrings:
+      handlers:
+        vba: { }
+        python: { }
