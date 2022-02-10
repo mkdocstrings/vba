@@ -58,8 +58,13 @@ def find_file_docstring(code: str) -> Docstring:
         if is_comment(line):
             docstring_lines.append(line)
 
+    docstring_value = "\n".join(uncomment_lines(docstring_lines))
+
+    # FIXME: https://github.com/mkdocstrings/griffe/issues/38
+    docstring_value = docstring_value.replace(":", ";")
+
     return Docstring(
-        "\n".join(uncomment_lines(docstring_lines)),
+        value=docstring_value,
         parser=Parser.google,
         parser_options={},
     )
@@ -182,11 +187,16 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
                     break
                 docstring_lines.append(source_line)
 
+            docstring_value = "\n".join(uncomment_lines(docstring_lines))
+
+            # FIXME: https://github.com/mkdocstrings/griffe/issues/38
+            docstring_value = docstring_value.replace(":", ";")
+
             # Yield it and start over.
             yield VbaProcedureInfo(
                 signature=procedure["signature"],
                 docstring=Docstring(
-                    value="\n".join(uncomment_lines(docstring_lines)),
+                    value=docstring_value,
                     parser=Parser.google,
                     parser_options={},
                 ),
