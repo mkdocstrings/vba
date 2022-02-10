@@ -18,12 +18,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.7",
-    use_scm_version={
-        "write_to": "src/version.py",
-    },
-    setup_requires=[
-        "setuptools_scm",
-    ],
     install_requires=[
         "mkdocstrings[python]>=0.18",
         "mkdocs-material",

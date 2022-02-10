@@ -15,4 +15,3 @@ pdm.lock
 __pypackages__/
 .venv/
 .eggs/
-src/version.py
