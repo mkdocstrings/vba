@@ -21,7 +21,7 @@ class VbaArgumentInfo:
     def render(self):
         parts = []
         if self.optional:
-            parts.append(self.optional)
+            parts.append("Optional")
         if self.modifier:
             parts.append(self.modifier)
         parts.append(self.name)
