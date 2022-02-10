@@ -1,0 +1,32 @@
+name: Build and upload Python Package to pypi.autoactuary.com
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+      - name: Build and publish
+        env:
+          TWINE_USERNAME: 'aa'
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_REPOSITORY_URL: 'https://pypi.autoactuary.com'
+        run: |
+          python setup.py sdist bdist_wheel
+          twine upload dist/*
+      - name: Trigger docs update
+        run: |
+          curl -X POST -d {} "https://webhooks.amplify.eu-west-2.amazonaws.com/prod/webhooks?id=6ee6a4d0-2851-453f-9ae1-6599a7655b42&token=PvkVMadqDAWjSdtjruZQWkH6mzaPhDTLXLVoYQBH4I&operation=startbuild" -H "Content-Type:application/json"
