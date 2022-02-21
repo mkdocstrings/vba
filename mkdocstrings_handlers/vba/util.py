@@ -77,18 +77,6 @@ def is_end(line: str) -> bool:
 def parse_args(args: str) -> Generator[VbaArgumentInfo, None, None]:
     """
     Parse the arguments portion of a signature line of a VBA procedure.
-
-    Examples:
-        >>> list(parse_args(""))
-        []
-        >>> list(parse_args("foo"))
-        [VbaArgumentInfo(name='foo', optional=False, modifier=None, arg_type=None, default=None)]
-        >>> list(parse_args("bar As listObject"))
-        [VbaArgumentInfo(name='bar', optional=False, modifier=None, arg_type='listObject', default=None)]
-        >>> list(parse_args("ByVal v As Variant"))
-        [VbaArgumentInfo(name='v', optional=False, modifier='ByVal', arg_type='Variant', default=None)]
-        >>> list(parse_args('Optional ByRef s1 As String = "Hello"'))
-        [VbaArgumentInfo(name='s1', optional=True, modifier='ByRef', arg_type='String', default='"Hello"')]
     """
     for arg in args.split(","):
         arg = arg.strip()
@@ -121,19 +109,6 @@ def parse_args(args: str) -> Generator[VbaArgumentInfo, None, None]:
 def parse_signature(line: str) -> VbaSignatureInfo:
     """
     Parse the signature line of a VBA procedure.
-
-    Examples:
-        >>> parse_signature("Sub foo()")
-        VbaSignatureInfo(visibility=None, return_type=None, procedure_type='Sub', name='foo', args=[])
-        >>> parse_signature("Function asdf123(fooBar As listObject)") # doctest: +NORMALIZE_WHITESPACE
-        VbaSignatureInfo(visibility=None, return_type=None, procedure_type='Function', name='asdf123', \
-        args=[VbaArgumentInfo(name='fooBar', optional=False, modifier=None, arg_type='listObject', default=None)])
-        >>> parse_signature("Public Property Let asdf(ByVal vNewValue As Variant)") # doctest: +NORMALIZE_WHITESPACE
-        VbaSignatureInfo(visibility='Public', return_type=None, procedure_type='Property Let', name='asdf', \
-        args=[VbaArgumentInfo(name='vNewValue', optional=False, modifier='ByVal', arg_type='Variant', default=None)])
-        >>> parse_signature("Function Test(Optional d As Variant = Empty)") # doctest: +NORMALIZE_WHITESPACE
-        VbaSignatureInfo(visibility=None, return_type=None, procedure_type='Function', name='Test',
-        args=[VbaArgumentInfo(name='d', optional=True, modifier=None, arg_type='Variant', default='Empty')])
     """
     line = re.sub(r"'.*$", "", line).strip()  # Strip comment and whitespace.
 

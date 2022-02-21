@@ -34,8 +34,8 @@ class VbaArgumentInfo:
 
 @dataclass
 class VbaSignatureInfo:
-    visibility: str
-    return_type: str
+    visibility: Optional[str]
+    return_type: Optional[str]
     procedure_type: str
     name: str
     args: List[VbaArgumentInfo]
