@@ -27,6 +27,3 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
           twine upload dist/*
-      - name: Trigger docs update
-        run: |
-          curl -X POST -d {} "https://webhooks.amplify.eu-west-2.amazonaws.com/prod/webhooks?id=6ee6a4d0-2851-453f-9ae1-6599a7655b42&token=PvkVMadqDAWjSdtjruZQWkH6mzaPhDTLXLVoYQBH4I&operation=startbuild" -H "Content-Type:application/json"
