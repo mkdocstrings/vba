@@ -116,7 +116,7 @@ def parse_signature(line: str) -> VbaSignatureInfo:
         return_type=match["returnType"],
         procedure_type=match["type"],
         name=match["name"],
-        args=list(parse_args(match["args"])),
+        args=list(parse_args(match["args"] or "")),
     )
 
 

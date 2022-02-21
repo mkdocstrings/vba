@@ -12,7 +12,7 @@ re_arg = re.compile(
 re_signature = re.compile(
     r"((?P<visibility>Private|Public) +)?"
     r"(?P<type>Sub|Function|Property (Let|Get)) *"
-    r"(?P<name>[A-Z_][A-Z0-9_]*)\( *(?P<args>[A-Z0-9_ ,=]*)\)"
+    r"(?P<name>[A-Z_][A-Z0-9_]*)\( *(?P<args>[^,]+( *, *[^,]+)*)? *\)"
     r"( +As +(?P<returnType>[A-Z_][A-Z0-9_]*))?",
     re.IGNORECASE,
 )
