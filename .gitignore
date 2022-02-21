@@ -15,3 +15,5 @@ pdm.lock
 __pypackages__/
 .venv/
 .eggs/
+
+mkdocstrings_handlers/vba/version.py
