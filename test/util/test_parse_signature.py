@@ -71,6 +71,24 @@ class TestParseSignature(unittest.TestCase):
                     ],
                 ),
             ),
+            (
+                "Function dict(ParamArray Args() As Variant)",
+                VbaSignatureInfo(
+                    visibility=None,
+                    return_type=None,
+                    procedure_type="Function",
+                    name="dict",
+                    args=[
+                        VbaArgumentInfo(
+                            name="Args",
+                            optional=False,
+                            modifier="ParamArray",
+                            arg_type="Variant",
+                            default=None,
+                        )
+                    ],
+                ),
+            ),
         ]
 
         for (signature, result) in cases:

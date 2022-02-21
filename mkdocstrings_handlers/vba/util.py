@@ -79,24 +79,34 @@ def parse_args(args: str) -> Generator[VbaArgumentInfo, None, None]:
     """
     Parse the arguments portion of a signature line of a VBA procedure.
     """
+    args = args.strip()
+    if not len(args):
+        return
+
     for arg in args.split(","):
-        arg = arg.strip()
-        if not len(arg):
-            continue
+        yield parse_arg(arg)
 
-        match = re_arg.fullmatch(arg)
 
-        if match is None:
-            raise RuntimeError(f"Failed to parse argument: {arg}")
-        match = match.groupdict()
-
-        yield VbaArgumentInfo(
-            optional=bool(match["optional"]),
-            modifier=match["modifier"],
-            name=match["name"],
-            arg_type=match["type"],
-            default=match["default"],
+def parse_arg(arg: str) -> VbaArgumentInfo:
+    arg = arg.strip()
+    if not len(arg):
+        raise NotImplementedError(
+            "What do we do with empty arguments in a function signature?"
         )
+
+    match = re_arg.fullmatch(arg)
+
+    if match is None:
+        raise RuntimeError(f"Failed to parse argument: {arg}")
+    match = match.groupdict()
+
+    return VbaArgumentInfo(
+        optional=bool(match["optional"]),
+        modifier=match["modifier"],
+        name=match["name"],
+        arg_type=match["type"],
+        default=match["default"],
+    )
 
 
 def parse_signature(line: str) -> VbaSignatureInfo:

@@ -1,7 +1,57 @@
 import unittest
 
 from mkdocstrings_handlers.vba.types import VbaArgumentInfo
-from mkdocstrings_handlers.vba.util import parse_args
+from mkdocstrings_handlers.vba.util import parse_args, parse_arg
+
+
+class TestParseArg(unittest.TestCase):
+    def test_1(self):
+        cases = [
+            (
+                "bar As listObject",
+                VbaArgumentInfo(
+                    name="bar",
+                    optional=False,
+                    modifier=None,
+                    arg_type="listObject",
+                    default=None,
+                ),
+            ),
+            (
+                "ByVal v As Variant",
+                VbaArgumentInfo(
+                    name="v",
+                    optional=False,
+                    modifier="ByVal",
+                    arg_type="Variant",
+                    default=None,
+                ),
+            ),
+            (
+                'Optional ByRef s1 As String = "Hello"',
+                VbaArgumentInfo(
+                    name="s1",
+                    optional=True,
+                    modifier="ByRef",
+                    arg_type="String",
+                    default='"Hello"',
+                ),
+            ),
+            (
+                "ParamArray Args() As Variant",
+                VbaArgumentInfo(
+                    name="Args",
+                    optional=False,
+                    modifier="ParamArray",
+                    arg_type="Variant",
+                    default=None,
+                ),
+            ),
+        ]
+
+        for (arg_string, result) in cases:
+            with self.subTest(arg_string):
+                self.assertEqual(result, parse_arg(arg_string))
 
 
 class TestParseArgs(unittest.TestCase):
@@ -44,42 +94,6 @@ class TestParseArgs(unittest.TestCase):
                         arg_type=None,
                         default=None,
                     ),
-                ],
-            ),
-            (
-                "bar As listObject",
-                [
-                    VbaArgumentInfo(
-                        name="bar",
-                        optional=False,
-                        modifier=None,
-                        arg_type="listObject",
-                        default=None,
-                    )
-                ],
-            ),
-            (
-                "ByVal v As Variant",
-                [
-                    VbaArgumentInfo(
-                        name="v",
-                        optional=False,
-                        modifier="ByVal",
-                        arg_type="Variant",
-                        default=None,
-                    )
-                ],
-            ),
-            (
-                'Optional ByRef s1 As String = "Hello"',
-                [
-                    VbaArgumentInfo(
-                        name="s1",
-                        optional=True,
-                        modifier="ByRef",
-                        arg_type="String",
-                        default='"Hello"',
-                    )
                 ],
             ),
         ]

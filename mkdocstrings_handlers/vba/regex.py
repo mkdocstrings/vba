@@ -2,8 +2,9 @@ import re
 
 re_arg = re.compile(
     r"((?P<optional>Optional) +)?"
-    r"((?P<modifier>ByVal|ByRef) +)?"
+    r"((?P<modifier>ByVal|ByRef|ParamArray) +)?"
     r"(?P<name>[A-Z_][A-Z0-9_]*)"
+    r"(\(\))?"
     r"( +As +(?P<type>[A-Z_][A-Z0-9_]*))?"
     r"( *= *(?P<default>.*))?",
     re.IGNORECASE,
