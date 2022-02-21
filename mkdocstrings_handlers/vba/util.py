@@ -61,9 +61,6 @@ def find_file_docstring(code: str) -> Docstring:
 
     docstring_value = "\n".join(uncomment_lines(docstring_lines))
 
-    # FIXME: https://github.com/mkdocstrings/griffe/issues/38
-    docstring_value = docstring_value.replace(":", ";")
-
     return Docstring(
         value=docstring_value,
         parser=Parser.google,
