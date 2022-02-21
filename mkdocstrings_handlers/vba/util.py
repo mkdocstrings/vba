@@ -131,6 +131,9 @@ def parse_signature(line: str) -> VbaSignatureInfo:
         >>> parse_signature("Public Property Let asdf(ByVal vNewValue As Variant)") # doctest: +NORMALIZE_WHITESPACE
         VbaSignatureInfo(visibility='Public', return_type=None, procedure_type='Property Let', name='asdf', \
         args=[VbaArgumentInfo(name='vNewValue', optional=False, modifier='ByVal', arg_type='Variant', default=None)])
+        >>> parse_signature("Function Test(Optional d As Variant = Empty)") # doctest: +NORMALIZE_WHITESPACE
+        VbaSignatureInfo(visibility=None, return_type=None, procedure_type='Function', name='Test',
+        args=[VbaArgumentInfo(name='d', optional=True, modifier=None, arg_type='Variant', default='Empty')])
     """
     line = re.sub(r"'.*$", "", line).strip()  # Strip comment and whitespace.
 
@@ -138,7 +141,7 @@ def parse_signature(line: str) -> VbaSignatureInfo:
     match = re.match(
         r"^((?P<visibility>Private|Public) +)?"
         r"(?P<type>Sub|Function|Property (Let|Get)) *"
-        r"(?P<name>[A-Z_][A-Z0-9_]*)\( *(?P<args>[A-Z0-9_ ,]*)\)"
+        r"(?P<name>[A-Z_][A-Z0-9_]*)\( *(?P<args>[A-Z0-9_ ,=]*)\)"
         r"( +As +(?P<returnType>[A-Z_][A-Z0-9_]*))?$",
         line,
         re.IGNORECASE,
