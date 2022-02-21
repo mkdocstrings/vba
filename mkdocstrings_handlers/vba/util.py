@@ -4,6 +4,7 @@ from typing import List, Generator
 from griffe.dataclasses import Docstring
 from griffe.docstrings import Parser
 
+from mkdocstrings_handlers.vba.regex import re_signature, re_arg
 from mkdocstrings_handlers.vba.types import (
     VbaArgumentInfo,
     VbaSignatureInfo,
@@ -83,15 +84,7 @@ def parse_args(args: str) -> Generator[VbaArgumentInfo, None, None]:
         if not len(arg):
             continue
 
-        match = re.match(
-            r"^((?P<optional>Optional) +)?"
-            r"((?P<modifier>ByVal|ByRef) +)?"
-            r"(?P<name>[A-Z_][A-Z0-9_]*)"
-            r"( +As +(?P<type>[A-Z_][A-Z0-9_]*))?"
-            r"( *= *(?P<default>.*))?$",
-            arg,
-            re.IGNORECASE,
-        )
+        match = re_arg.fullmatch(arg)
 
         if match is None:
             raise RuntimeError(f"Failed to parse argument: {arg}")
@@ -112,15 +105,7 @@ def parse_signature(line: str) -> VbaSignatureInfo:
     """
     line = re.sub(r"'.*$", "", line).strip()  # Strip comment and whitespace.
 
-    # https://regex101.com/r/BclPPV/1
-    match = re.match(
-        r"^((?P<visibility>Private|Public) +)?"
-        r"(?P<type>Sub|Function|Property (Let|Get)) *"
-        r"(?P<name>[A-Z_][A-Z0-9_]*)\( *(?P<args>[A-Z0-9_ ,=]*)\)"
-        r"( +As +(?P<returnType>[A-Z_][A-Z0-9_]*))?$",
-        line,
-        re.IGNORECASE,
-    )
+    match = re_signature.fullmatch(line)
 
     if match is None:
         raise RuntimeError(f"Failed to parse signature: {line}")
