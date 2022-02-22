@@ -159,9 +159,6 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
 
             docstring_value = "\n".join(uncomment_lines(docstring_lines))
 
-            # FIXME: https://github.com/mkdocstrings/griffe/issues/38
-            docstring_value = docstring_value.replace(":", ";")
-
             # Yield it and start over.
             yield VbaProcedureInfo(
                 signature=procedure["signature"],
