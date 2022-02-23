@@ -18,7 +18,7 @@ Function fuzz_HotelEcho_helper( _
     ' Arguments:
     '     WS: The worksheet
     '     Name: The name
-    '     Description: The description
+    '     description: The description
     '
     ' Examples:
     '     >>> fuzz_HotelEcho_helper(sheet, "foo", "the sheet")
