@@ -1,7 +1,7 @@
 import re
 from typing import List, Generator
 
-from griffe.dataclasses import Docstring
+from griffe.dataclasses import Docstring, Function, Parameters, Parameter
 from griffe.docstrings import Parser
 
 from mkdocstrings_handlers.vba.regex import re_signature, re_arg
@@ -52,19 +52,23 @@ def find_file_docstring(code: str) -> Docstring:
     It's the first block of comment lines before the first signature, if any.
     """
     docstring_lines = []
+    lineno = None
 
-    for line in code.splitlines():
+    for i, line in enumerate(code.splitlines()):
         if is_signature(line):
             break
         if is_comment(line):
+            if lineno is None:
+                # This is the first docstring line
+                lineno = i
+
             docstring_lines.append(line)
 
     docstring_value = "\n".join(uncomment_lines(docstring_lines))
 
     return Docstring(
         value=docstring_value,
-        parser=Parser.google,
-        parser_options={},
+        lineno=lineno,
     )
 
 
@@ -159,14 +163,31 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
 
             docstring_value = "\n".join(uncomment_lines(docstring_lines))
 
+            # See https://mkdocstrings.github.io/griffe/usage/#using-griffe-as-a-docstring-parsing-library
+            docstring = Docstring(
+                value=docstring_value,
+                parser=Parser.google,
+                parser_options={},
+                lineno=procedure["first_line"] + 1,
+                parent=Function(
+                    name=procedure["signature"].name,
+                    parameters=Parameters(
+                        *(
+                            Parameter(
+                                name=arg.name,
+                                annotation=arg.arg_type,
+                                default=arg.default,
+                            )
+                            for arg in procedure["signature"].args
+                        )
+                    ),
+                ),
+            )
+
             # Yield it and start over.
             yield VbaProcedureInfo(
                 signature=procedure["signature"],
-                docstring=Docstring(
-                    value=docstring_value,
-                    parser=Parser.google,
-                    parser_options={},
-                ),
+                docstring=docstring,
                 first_line=procedure["first_line"],
                 last_line=procedure["last_line"],
                 source=procedure_source,
