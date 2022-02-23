@@ -3,6 +3,7 @@ Attribute VB_Name = "foo"
 ' Like all other, it can be multiple lines
 '
 ' Examples:
+'
 '     >>> foo(bar)
 '     baz
 
