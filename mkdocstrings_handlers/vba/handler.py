@@ -1,6 +1,7 @@
 """This module implements a handler for the VBA language."""
 
 import posixpath
+from pathlib import Path
 from typing import Any, BinaryIO, Iterator, Optional, Tuple
 
 from griffe.logger import patch_loggers
@@ -67,6 +68,8 @@ def get_handler(
         An instance of `VbaHandler`.
     """
     return VbaHandler(
-        collector=VbaCollector(),
+        # TODO How do we get the path of the directory containing mkdocs.yml here?
+        #  Indentifiers for .bas files need to be found relative to that.
+        collector=VbaCollector(base_dir=Path(".")),
         renderer=VbaRenderer("vba", theme, custom_templates),
     )

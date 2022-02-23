@@ -18,6 +18,12 @@ class VbaCollector(BaseCollector):
     Collect data from a VBA file.
     """
 
+    base_dir: Path
+
+    def __init__(self, base_dir: Path) -> None:
+        super().__init__()
+        self.base_dir = base_dir
+
     def collect(
         self,
         identifier: str,
@@ -35,7 +41,7 @@ class VbaCollector(BaseCollector):
         Returns:
             The collected object tree.
         """
-        p = Path(identifier)
+        p = Path(self.base_dir, identifier)
         with p.open("r") as f:
             code = f.read()
 
