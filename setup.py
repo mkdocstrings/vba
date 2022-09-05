@@ -28,4 +28,5 @@ setuptools.setup(
         "mkdocstrings[python]>=0.18",
         "mkdocs-material",
     ],
+    include_package_data=True,
 )
