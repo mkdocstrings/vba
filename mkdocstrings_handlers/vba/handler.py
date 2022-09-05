@@ -69,7 +69,8 @@ def get_handler(
     """
     return VbaHandler(
         # TODO How do we get the path of the directory containing mkdocs.yml here?
-        #  Indentifiers for .bas files need to be found relative to that.
+        #  Identifiers for .bas files need to be found relative to that.
+        #  See question asked at https://github.com/mkdocstrings/mkdocstrings/issues/387#issuecomment-1048869214
         collector=VbaCollector(base_dir=Path(".")),
         renderer=VbaRenderer("vba", theme, custom_templates),
     )
