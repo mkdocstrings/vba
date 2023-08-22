@@ -1,12 +1,15 @@
 import doctest
 import unittest
+from typing import Any, List
+from unittest import BaseTestSuite
 
 from locate import this_dir
 
 repo_dir = this_dir().parent
 
 
-def load_tests(loader, tests, ignore):
+# noinspection PyUnusedLocal
+def load_tests(loader: Any, tests: BaseTestSuite, ignore: Any) -> BaseTestSuite:
     """
     See https://docs.python.org/3/library/doctest.html#unittest-api
     """
@@ -16,7 +19,7 @@ def load_tests(loader, tests, ignore):
     return tests
 
 
-def find_modules_with_doctests():
+def find_modules_with_doctests() -> List[str]:
     modules = []
     skip_n_parts = len(repo_dir.parts)
     for path in repo_dir.joinpath("mkdocstrings_handlers").rglob("*.py"):
