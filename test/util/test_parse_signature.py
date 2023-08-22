@@ -8,7 +8,7 @@ from mkdocstrings_handlers.vba._util import parse_signature
 
 
 class TestParseSignature(unittest.TestCase):
-    def test_1(self):
+    def test_1(self) -> None:
         cases = [
             (
                 "Sub foo()",

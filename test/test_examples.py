@@ -29,7 +29,7 @@ def tmp_build(config_file_path: Path) -> Generator[Path, None, None]:
 
 
 class TestExamples(unittest.TestCase):
-    def test_example1(self):
+    def test_example1(self) -> None:
         with tmp_build(examples_dir.joinpath("example1", "mkdocs.yml")) as tmp_dir:
             # TODO: Write assertions. For now, just check that it does not fail.
             pass

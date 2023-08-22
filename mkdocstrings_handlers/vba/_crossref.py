@@ -34,8 +34,8 @@ def do_multi_crossref(text: str, code: bool = True) -> Markup:
     group_number = 0
     variables = {}
 
-    def repl(match):  # noqa: WPS430
-        nonlocal group_number  # noqa: WPS420
+    def repl(match: re.Match[str]) -> str:
+        nonlocal group_number
         group_number += 1
         path = match.group()
         path_var = f"path{group_number}"

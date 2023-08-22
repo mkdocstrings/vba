@@ -4,8 +4,8 @@ from typing import List, Generator
 from griffe.dataclasses import Docstring, Function, Parameters, Parameter
 from griffe.docstrings import Parser
 
-from mkdocstrings_handlers.vba._regex import re_signature, re_arg
-from mkdocstrings_handlers.vba._types import (
+from ._regex import re_signature, re_arg
+from ._types import (
     VbaArgumentInfo,
     VbaSignatureInfo,
     VbaProcedureInfo,
@@ -99,14 +99,14 @@ def parse_arg(arg: str) -> VbaArgumentInfo:
 
     if match is None:
         raise RuntimeError(f"Failed to parse argument: {arg}")
-    match = match.groupdict()
+    groups = match.groupdict()
 
     return VbaArgumentInfo(
-        optional=bool(match["optional"]),
-        modifier=match["modifier"],
-        name=match["name"],
-        arg_type=match["type"],
-        default=match["default"],
+        optional=bool(groups["optional"]),
+        modifier=groups["modifier"],
+        name=groups["name"],
+        arg_type=groups["type"],
+        default=groups["default"],
     )
 
 
@@ -120,14 +120,14 @@ def parse_signature(line: str) -> VbaSignatureInfo:
 
     if match is None:
         raise RuntimeError(f"Failed to parse signature: {line}")
-    match = match.groupdict()
+    groups = match.groupdict()
 
     return VbaSignatureInfo(
-        visibility=match["visibility"],
-        return_type=match["returnType"],
-        procedure_type=match["type"],
-        name=match["name"],
-        args=list(parse_args(match["args"] or "")),
+        visibility=groups["visibility"],
+        return_type=groups["returnType"],
+        procedure_type=groups["type"],
+        name=groups["name"],
+        args=list(parse_args(groups["args"] or "")),
     )
 
 

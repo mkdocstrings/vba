@@ -8,7 +8,7 @@ from mkdocstrings_handlers.vba._util import parse_args, parse_arg
 
 
 class TestParseArg(unittest.TestCase):
-    def test_1(self):
+    def test_1(self) -> None:
         cases = [
             (
                 "bar As listObject",
@@ -58,7 +58,7 @@ class TestParseArg(unittest.TestCase):
 
 
 class TestParseArgs(unittest.TestCase):
-    def test_1(self):
+    def test_1(self) -> None:
         cases = [
             ("", []),
             (

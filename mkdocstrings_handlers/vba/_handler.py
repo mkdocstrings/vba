@@ -4,10 +4,21 @@ This module implements a handler for the VBA language.
 
 from __future__ import annotations
 
+import copy
 import posixpath
 from collections import ChainMap
 from pathlib import Path
-from typing import Any, BinaryIO, Iterator, Optional, Tuple
+from typing import (
+    Any,
+    BinaryIO,
+    Iterator,
+    Optional,
+    Tuple,
+    MutableMapping,
+    Dict,
+    Mapping,
+    Set,
+)
 
 from griffe.logger import patch_loggers
 from markdown import Markdown
@@ -53,7 +64,7 @@ class VbaHandler(BaseHandler):
     The theme to fall back to.
     """
 
-    default_config: dict = {
+    default_config = {
         "show_root_heading": False,
         "show_root_toc_entry": True,
         "show_root_full_path": True,
@@ -126,12 +137,10 @@ class VbaHandler(BaseHandler):
     def render(
         self,
         data: VbaModuleInfo,
-        config: dict,
+        config: Mapping[str, Any],
     ) -> str:
-        final_config = ChainMap(config, self.default_config)
-        render_type = "module"
-
-        template = self.env.get_template(f"{render_type}.html")
+        final_config = ChainMap(dict(copy.deepcopy(config)), self.default_config)
+        template = self.env.get_template(f"module.html")
 
         # Heading level is a "state" variable, that will change at each step
         # of the rendering recursion. Therefore, it's easier to use it as a plain value
@@ -148,18 +157,16 @@ class VbaHandler(BaseHandler):
         return template.render(
             **{
                 "config": final_config,
-                render_type: data,
+                "module": data,
                 "heading_level": heading_level,
                 "root": True,
             },
         )
 
-    def get_anchors(self, data: VbaModuleInfo) -> list[str]:
-        return list(
-            {data.path.as_posix(), *(p.signature.name for p in data.procedures)}
-        )
+    def get_anchors(self, data: VbaModuleInfo) -> Set[str]:
+        return {data.path.as_posix(), *(p.signature.name for p in data.procedures)}
 
-    def update_env(self, md: Markdown, config: dict) -> None:
+    def update_env(self, md: Markdown, config: Dict[Any, Any]) -> None:
         super().update_env(md, config)
         self.env.trim_blocks = True
         self.env.lstrip_blocks = True
@@ -171,7 +178,7 @@ class VbaHandler(BaseHandler):
     def collect(
         self,
         identifier: str,
-        config: dict,
+        config: MutableMapping[str, Any],
     ) -> VbaModuleInfo:
         """Collect the documentation tree given an identifier and selection options.
 
@@ -222,7 +229,7 @@ def get_handler(
         An instance of `VbaHandler`.
     """
     return VbaHandler(
-        base_dir=Path(config_file_path).parent,
+        base_dir=Path(config_file_path or ".").parent,
         handler="vba",
         theme=theme,
         custom_templates=custom_templates,

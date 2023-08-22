@@ -35,3 +35,17 @@ This will run all tests. This includes
 - Unit tests from `tests/`.
 - Doctests from `mkdocstrings_vba/`.
 - Full builds from `examples/`.
+
+## Linting
+
+Fix code style using `black`:
+
+```shell
+black .
+```
+
+Check types using `mypy`:
+
+```shell
+mypy .
+```

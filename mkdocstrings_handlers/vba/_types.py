@@ -7,7 +7,6 @@ from griffe.dataclasses import Docstring
 
 @dataclass
 class VbaArgumentInfo:
-
     name: str
 
     optional: bool
@@ -18,7 +17,7 @@ class VbaArgumentInfo:
 
     default: Optional[str]
 
-    def render(self):
+    def render(self) -> str:
         parts = []
         if self.optional:
             parts.append("Optional")
@@ -43,7 +42,6 @@ class VbaSignatureInfo:
 
 @dataclass
 class VbaProcedureInfo:
-
     signature: VbaSignatureInfo
 
     docstring: Optional[Docstring]
@@ -67,7 +65,6 @@ class VbaProcedureInfo:
 
 @dataclass
 class VbaModuleInfo:
-
     docstring: Optional[Docstring]
 
     source: List[str]
