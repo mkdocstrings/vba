@@ -27,6 +27,7 @@ To build an example site:
 ## Running tests
 
 ```shell
+pip install -r test-requirements.txt
 python -m unittest
 ```
 
