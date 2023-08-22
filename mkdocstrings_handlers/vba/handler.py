@@ -54,7 +54,10 @@ class VbaHandler(BaseHandler):
 
 def get_handler(
     theme: str,
-    custom_templates: Optional[str] = None,
+    custom_templates: str | None = None,
+    config_file_path: str | None = None,
+    paths: list[str] | None = None,
+    locale: str = "en",
     **config: Any,
 ) -> VbaHandler:
     """Simply return an instance of `VbaHandler`.
@@ -62,15 +65,15 @@ def get_handler(
     Arguments:
         theme: The theme to use when rendering contents.
         custom_templates: Directory containing custom templates.
+        config_file_path: The MkDocs configuration file path.
+        paths: A list of paths to use as Griffe search paths.
+        locale: The locale to use when rendering content.
         **config: Configuration passed to the handler.
 
     Returns:
         An instance of `VbaHandler`.
     """
     return VbaHandler(
-        # TODO How do we get the path of the directory containing mkdocs.yml here?
-        #  Identifiers for .bas files need to be found relative to that.
-        #  See question asked at https://github.com/mkdocstrings/mkdocstrings/issues/387#issuecomment-1048869214
-        collector=VbaCollector(base_dir=Path(".")),
+        collector=VbaCollector(base_dir=Path(config_file_path).parent),
         renderer=VbaRenderer("vba", theme, custom_templates),
     )
