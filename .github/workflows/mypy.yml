@@ -16,7 +16,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -c ci-constraints.txt . -r mypy-requirements.txt
+          python -m pip install -c ci-constraints.txt . -r mypy-requirements.txt -r test-requirements.txt
 
       - name: Run MyPy
         run: |
