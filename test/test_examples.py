@@ -2,6 +2,7 @@ import unittest
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Generator
 
 from locate import this_dir
 from mkdocs.commands.build import build
@@ -12,18 +13,14 @@ examples_dir = repo_dir.joinpath("examples")
 
 
 @contextmanager
-def tmp_build(config_file_path: Path):
-    with TemporaryDirectory() as tmp_dir:
-        tmp_dir = Path(tmp_dir)
+def tmp_build(config_file_path: Path) -> Generator[Path, None, None]:
+    with TemporaryDirectory() as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
 
         with config_file_path.open(mode="rb") as f:
             config = load_config(config_file=f)
             config["site_dir"] = tmp_dir
-            build(
-                config=config,
-                dirty=False,
-                live_server=False,
-            )
+            build(config=config)
 
         try:
             yield tmp_dir
@@ -33,9 +30,8 @@ def tmp_build(config_file_path: Path):
 
 class TestExamples(unittest.TestCase):
     def test_example1(self):
-        raise unittest.SkipTest
-
         with tmp_build(examples_dir.joinpath("example1", "mkdocs.yml")) as tmp_dir:
+            # TODO: Write assertions. For now, just check that it does not fail.
             pass
 
 
