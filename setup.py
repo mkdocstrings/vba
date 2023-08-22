@@ -30,4 +30,10 @@ setuptools.setup(
         "mkdocs-material>=9.2.1,==9.*",
     ],
     include_package_data=True,
+    package_data={
+        "": [
+            "py.typed",
+            "templates",
+        ],
+    },
 )
