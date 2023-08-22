@@ -9,8 +9,8 @@ from mkdocstrings.handlers.base import BaseHandler
 from mkdocstrings.inventory import Inventory
 from mkdocstrings.loggers import get_logger
 
-from mkdocstrings_handlers.vba.collector import VbaCollector
-from mkdocstrings_handlers.vba.renderer import VbaRenderer
+from mkdocstrings_handlers.vba._collector import VbaCollector
+from mkdocstrings_handlers.vba._renderer import VbaRenderer
 
 patch_loggers(get_logger)
 

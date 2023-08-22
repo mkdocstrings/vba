@@ -1,7 +1,10 @@
 import unittest
 
-from mkdocstrings_handlers.vba.types import VbaArgumentInfo
-from mkdocstrings_handlers.vba.util import parse_args, parse_arg
+# noinspection PyProtectedMember
+from mkdocstrings_handlers.vba._types import VbaArgumentInfo
+
+# noinspection PyProtectedMember
+from mkdocstrings_handlers.vba._util import parse_args, parse_arg
 
 
 class TestParseArg(unittest.TestCase):
@@ -49,7 +52,7 @@ class TestParseArg(unittest.TestCase):
             ),
         ]
 
-        for (arg_string, result) in cases:
+        for arg_string, result in cases:
             with self.subTest(arg_string):
                 self.assertEqual(result, parse_arg(arg_string))
 
@@ -98,7 +101,7 @@ class TestParseArgs(unittest.TestCase):
             ),
         ]
 
-        for (args_string, result) in cases:
+        for args_string, result in cases:
             with self.subTest(args_string):
                 self.assertEqual(result, list(parse_args(args_string)))
 

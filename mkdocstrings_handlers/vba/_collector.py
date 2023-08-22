@@ -5,8 +5,8 @@ from pathlib import Path
 
 from mkdocstrings.handlers.base import BaseCollector
 
-from mkdocstrings_handlers.vba.types import VbaModuleInfo
-from mkdocstrings_handlers.vba.util import (
+from mkdocstrings_handlers.vba._types import VbaModuleInfo
+from mkdocstrings_handlers.vba._util import (
     collapse_long_lines,
     find_file_docstring,
     find_procedures,

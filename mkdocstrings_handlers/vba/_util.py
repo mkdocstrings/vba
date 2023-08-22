@@ -4,8 +4,8 @@ from typing import List, Generator
 from griffe.dataclasses import Docstring, Function, Parameters, Parameter
 from griffe.docstrings import Parser
 
-from mkdocstrings_handlers.vba.regex import re_signature, re_arg
-from mkdocstrings_handlers.vba.types import (
+from mkdocstrings_handlers.vba._regex import re_signature, re_arg
+from mkdocstrings_handlers.vba._types import (
     VbaArgumentInfo,
     VbaSignatureInfo,
     VbaProcedureInfo,

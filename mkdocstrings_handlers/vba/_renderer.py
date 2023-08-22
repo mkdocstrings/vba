@@ -19,7 +19,7 @@ from mkdocstrings.extension import PluginError
 from mkdocstrings.handlers.base import BaseRenderer, CollectorItem
 from mkdocstrings.loggers import get_logger
 
-from mkdocstrings_handlers.vba.types import VbaModuleInfo
+from mkdocstrings_handlers.vba._types import VbaModuleInfo
 
 logger = get_logger(__name__)
 
