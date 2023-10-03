@@ -1,4 +1,4 @@
-name: Build and upload Python Package to pypi.autoactuary.com
+name: Build and upload Python Package to pypi
 
 on:
   release:
@@ -22,9 +22,8 @@ jobs:
           pip install setuptools wheel twine
       - name: Build and publish
         env:
-          TWINE_USERNAME: 'aa'
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-          TWINE_REPOSITORY_URL: 'https://pypi.autoactuary.com'
         run: |
           python setup.py sdist bdist_wheel
           twine upload dist/*
