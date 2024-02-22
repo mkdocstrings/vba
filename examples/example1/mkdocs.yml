@@ -6,4 +6,3 @@ plugins:
   - mkdocstrings:
       handlers:
         vba: { }
-        python: { }

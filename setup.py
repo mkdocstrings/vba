@@ -11,7 +11,10 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/AutoActuary/mkdocstrings-vba",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_namespace_packages(
+        include=["mkdocstrings_handlers.*"],
+        exclude=["test"],
+    ),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: Other/Proprietary License",
@@ -25,7 +28,15 @@ setuptools.setup(
         "setuptools_scm",
     ],
     install_requires=[
-        "mkdocstrings[python]>=0.18",
-        "mkdocs-material",
+        "mkdocstrings>=0.22.0,==0.22.*",
+        "griffe>=0.34.0,==0.34.*",
+        "mkdocs-material>=9.2.1,==9.*",
     ],
+    include_package_data=True,
+    package_data={
+        "": [
+            "py.typed",
+            "templates",
+        ],
+    },
 )

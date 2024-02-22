@@ -3,6 +3,7 @@ Attribute VB_Name = "foo"
 ' Like all other, it can be multiple lines
 '
 ' Examples:
+'
 '     >>> foo(bar)
 '     baz
 
@@ -18,7 +19,7 @@ Function fuzz_HotelEcho_helper( _
     ' Arguments:
     '     WS: The worksheet
     '     Name: The name
-    '     Description: The description
+    '     description: The description
     '
     ' Examples:
     '     >>> fuzz_HotelEcho_helper(sheet, "foo", "the sheet")

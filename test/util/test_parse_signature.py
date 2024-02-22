@@ -1,11 +1,14 @@
 import unittest
 
-from mkdocstrings_handlers.vba.types import VbaSignatureInfo, VbaArgumentInfo
-from mkdocstrings_handlers.vba.util import parse_signature
+# noinspection PyProtectedMember
+from mkdocstrings_handlers.vba._types import VbaSignatureInfo, VbaArgumentInfo
+
+# noinspection PyProtectedMember
+from mkdocstrings_handlers.vba._util import parse_signature
 
 
 class TestParseSignature(unittest.TestCase):
-    def test_1(self):
+    def test_1(self) -> None:
         cases = [
             (
                 "Sub foo()",
@@ -91,7 +94,7 @@ class TestParseSignature(unittest.TestCase):
             ),
         ]
 
-        for (signature, result) in cases:
+        for signature, result in cases:
             with self.subTest(signature):
                 self.assertEqual(result, parse_signature(signature))
 
