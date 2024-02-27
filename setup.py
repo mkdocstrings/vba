@@ -28,9 +28,9 @@ setuptools.setup(
         "setuptools_scm",
     ],
     install_requires=[
-        "mkdocstrings>=0.22.0,==0.22.*",
-        "griffe>=0.34.0,==0.34.*",
-        "mkdocs-material>=9.2.1,==9.*",
+        "mkdocstrings>=0.22,<0.23",
+        "griffe>=0.34,<0.35",
+        "mkdocs-material>=9.2,<10",
     ],
     include_package_data=True,
     package_data={
