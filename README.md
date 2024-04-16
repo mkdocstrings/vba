@@ -13,7 +13,7 @@ which we parse using [regex](https://regular-expressions.info).
 
 ## Examples
 
-See the [`examples`](examples) folder.
+See the [`examples`](https://github.com/mkdocstrings/vba/tree/master/examples) folder.
 
 To build an example site:
 
@@ -32,6 +32,7 @@ python -m unittest
 ```
 
 This will run all tests. This includes
+
 - Unit tests from `tests/`.
 - Doctests from `mkdocstrings_vba/`.
 - Full builds from `examples/`.
