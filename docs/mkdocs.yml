@@ -1,0 +1,27 @@
+site_name: "mkdocstrings-vba"
+site_description: "A VBA handler for mkdocstrings."
+site_url: "https://mkdocstrings.github.io/vba"
+repo_url: "https://github.com/mkdocstrings/vba"
+repo_name: "mkdocstrings/vba"
+docs_dir: "src"
+watch:
+  - ../README.md
+  - mkdocs.yml
+  - src
+copyright: Copyright &copy; 2022 Rudolf Byker
+edit_uri: edit/master/docs/
+
+nav:
+  - Home: index.md
+  - mkdocstrings: https://mkdocstrings.github.io/
+
+theme:
+  name: material
+  features:
+    - content.action.edit
+    - content.action.view
+
+markdown_extensions: 
+  - pymdownx.snippets:
+      check_paths: True
+      restrict_base_path: False
