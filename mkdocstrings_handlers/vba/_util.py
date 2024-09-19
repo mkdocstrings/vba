@@ -1,8 +1,7 @@
 import re
 from typing import List, Generator
 
-from griffe.dataclasses import Docstring, Function, Parameters, Parameter
-from griffe.docstrings import Parser
+from griffe import Docstring, Function, Parameters, Parameter, Parser
 
 from ._regex import re_signature, re_arg
 from ._types import (

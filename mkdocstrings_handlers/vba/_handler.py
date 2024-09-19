@@ -5,26 +5,21 @@ This module implements a handler for the VBA language.
 from __future__ import annotations
 
 import copy
-import posixpath
 from collections import ChainMap
 from pathlib import Path
 from typing import (
     Any,
-    BinaryIO,
-    Iterator,
-    Optional,
-    Tuple,
     MutableMapping,
     Dict,
     Mapping,
     Set,
+    Tuple,
 )
 
-from griffe.logger import patch_loggers
+from griffe import patch_loggers
 from markdown import Markdown
 from mkdocs.exceptions import PluginError
-from mkdocstrings.handlers.base import BaseHandler
-from mkdocstrings.inventory import Inventory
+from mkdocstrings.handlers.base import BaseHandler, CollectionError
 from mkdocstrings.loggers import get_logger
 
 from ._crossref import do_crossref, do_multi_crossref
@@ -49,14 +44,14 @@ class VbaHandler(BaseHandler):
         super().__init__(**kwargs)
         self.base_dir = base_dir
 
+    name: str = "vba"
+    """
+    The handler's name.
+    """
+
     domain: str = "vba"
     """
     The cross-documentation domain/language for this handler.
-    """
-
-    enable_inventory: bool = True
-    """
-    Whether this handler is interested in enabling the creation of the `objects.inv` Sphinx inventory file.
     """
 
     fallback_theme = "material"
@@ -83,9 +78,7 @@ class VbaHandler(BaseHandler):
         "docstring_section_style": "table",
     }
     """
-    The default rendering options.
-
-    See [`default_config`][mkdocstrings_handlers.vba.renderer.VbaRenderer.default_config].
+    The default handler configuration.
 
     Option | Type | Description | Default
     ------ | ---- | ----------- | -------
@@ -107,32 +100,38 @@ class VbaHandler(BaseHandler):
     **`docstring_section_style`** | `str` | The style used to render docstring sections. Options: `table`, `list`, `spacy`. | `table`
     """
 
-    @classmethod
-    def load_inventory(
-        cls,
-        in_file: BinaryIO,
-        url: str,
-        base_url: Optional[str] = None,
-        **kwargs: Any,
-    ) -> Iterator[Tuple[str, str]]:
-        """Yield items and their URLs from an inventory file streamed from `in_file`.
-
-        This implements mkdocstrings' `load_inventory` "protocol" (see plugin.py).
+    def collect(
+        self,
+        identifier: str,
+        config: MutableMapping[str, Any],
+    ) -> VbaModuleInfo:
+        """Collect the documentation tree given an identifier and selection options.
 
         Arguments:
-            in_file: The binary file-like object to read the inventory from.
-            url: The URL that this file is being streamed from (used to guess `base_url`).
-            base_url: The URL that this inventory's sub-paths are relative to.
-            **kwargs: Ignore additional arguments passed from the config.
+            identifier: Which VBA file (.bas or .cls) to collect from.
+            config: Selection options, used to alter the data collection.
 
-        Yields:
-            Tuples of (item identifier, item URL).
+        Raises:
+            CollectionError: When there was a problem collecting the documentation.
+
+        Returns:
+            The collected object tree.
         """
-        if base_url is None:
-            base_url = posixpath.dirname(url)
+        p = Path(self.base_dir, identifier)
+        if not p.exists():
+            raise CollectionError("File not found.")
 
-        for item in Inventory.parse_sphinx(in_file, domain_filter=("py",)).values():
-            yield item.name, posixpath.join(base_url, item.uri)
+        with p.open("r") as f:
+            code = f.read()
+
+        code = collapse_long_lines(code)
+
+        return VbaModuleInfo(
+            docstring=find_file_docstring(code),
+            source=code.splitlines(),
+            path=p,
+            procedures=list(find_procedures(code)),
+        )
 
     def render(
         self,
@@ -163,9 +162,6 @@ class VbaHandler(BaseHandler):
             },
         )
 
-    def get_anchors(self, data: VbaModuleInfo) -> Set[str]:
-        return {data.path.as_posix(), *(p.signature.name for p in data.procedures)}
-
     def update_env(self, md: Markdown, config: Dict[Any, Any]) -> None:
         super().update_env(md, config)
         self.env.trim_blocks = True
@@ -175,38 +171,12 @@ class VbaHandler(BaseHandler):
         self.env.filters["multi_crossref"] = do_multi_crossref
         self.env.filters["order_members"] = do_order_members
 
-    def collect(
-        self,
-        identifier: str,
-        config: MutableMapping[str, Any],
-    ) -> VbaModuleInfo:
-        """Collect the documentation tree given an identifier and selection options.
-
-        Arguments:
-            identifier: Which VBA file (.bas or .cls) to collect from.
-            config: Selection options, used to alter the data collection.
-
-        Raises:
-            CollectionError: When there was a problem collecting the documentation.
-
-        Returns:
-            The collected object tree.
-        """
-        p = Path(self.base_dir, identifier)
-        with p.open("r") as f:
-            code = f.read()
-
-        code = collapse_long_lines(code)
-
-        return VbaModuleInfo(
-            docstring=find_file_docstring(code),
-            source=code.splitlines(),
-            path=p,
-            procedures=list(find_procedures(code)),
-        )
+    def get_anchors(self, data: VbaModuleInfo) -> Tuple[str, ...]:
+        return data.path.as_posix(), *(p.signature.name for p in data.procedures)
 
 
 def get_handler(
+    *,
     theme: str,
     custom_templates: str | None = None,
     config_file_path: str | None = None,
@@ -229,11 +199,12 @@ def get_handler(
         An instance of `VbaHandler`.
     """
     return VbaHandler(
-        base_dir=Path(config_file_path or ".").parent,
+        base_dir=(
+            Path(config_file_path).resolve().parent
+            if config_file_path
+            else Path(".").resolve()
+        ),
         handler="vba",
         theme=theme,
         custom_templates=custom_templates,
-        config_file_path=config_file_path,
-        paths=paths,
-        locale=locale,
     )

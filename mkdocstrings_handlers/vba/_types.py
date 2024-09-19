@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
-from griffe.dataclasses import Docstring
+from griffe import Docstring
 
 
 @dataclass

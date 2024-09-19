@@ -4,7 +4,7 @@ import enum
 import sys
 from typing import Any, Sequence
 
-from griffe.dataclasses import Alias, Object
+from griffe import Alias, Object
 from mkdocstrings.handlers.base import CollectorItem
 
 
