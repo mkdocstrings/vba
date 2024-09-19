@@ -57,10 +57,20 @@ class TestParseSignature(unittest.TestCase):
                 ),
             ),
             (
-                "Function Test(Optional d As Variant = Empty)",
+                "Public Property Get asdf() As String",
+                VbaSignatureInfo(
+                    visibility="Public",
+                    return_type="String",
+                    procedure_type="Property Get",
+                    name="asdf",
+                    args=[],
+                ),
+            ),
+            (
+                "Function Test(Optional d As Variant = Empty) As String",
                 VbaSignatureInfo(
                     visibility=None,
-                    return_type=None,
+                    return_type="String",
                     procedure_type="Function",
                     name="Test",
                     args=[
