@@ -154,12 +154,10 @@ class VbaHandler(BaseHandler):
             )
 
         return template.render(
-            **{
-                "config": final_config,
-                "module": data,
-                "heading_level": heading_level,
-                "root": True,
-            },
+            config=final_config,
+            module=data,
+            heading_level=heading_level,
+            root=True,
         )
 
     def update_env(self, md: Markdown, config: Dict[Any, Any]) -> None:
