@@ -177,23 +177,19 @@ class VbaHandler(BaseHandler):
 
 def get_handler(
     *,
-    theme: str,
+    theme: str = "material",
     custom_templates: str | None = None,
     config_file_path: str | None = None,
-    paths: list[str] | None = None,
-    locale: str = "en",
-    **config: Any,
+    **kwargs: Any,
 ) -> VbaHandler:
     """
-    Simply return an instance of `VbaHandler`.
+    Get a new `VbaHandler`.
 
     Arguments:
         theme: The theme to use when rendering contents.
         custom_templates: Directory containing custom templates.
         config_file_path: The MkDocs configuration file path.
-        paths: A list of paths to use as Griffe search paths.
-        locale: The locale to use when rendering content.
-        **config: Configuration passed to the handler.
+        kwargs: Extra keyword arguments that we don't use.
 
     Returns:
         An instance of `VbaHandler`.
