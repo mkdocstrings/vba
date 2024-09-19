@@ -13,10 +13,10 @@
           toc_label=procedure.signature.name ~ "()") %}
 
         {% if config.separate_signature %}
-          {{ procedure.signature.name }}()
+            {{ procedure.signature.visibility }} {{ procedure.signature.procedure_type }} {{ procedure.signature.name }}()
         {% else %}
           {% filter highlight(language="vba", inline=True) %}
-            {{ procedure.signature.name }}
+            {{ procedure.signature.visibility }} {{ procedure.signature.procedure_type }} {{ procedure.signature.name }}
             {% include "signature.html" with context %}
           {% endfilter %}
         {% endif %}
