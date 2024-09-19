@@ -28,8 +28,8 @@ setuptools.setup(
         "setuptools_scm",
     ],
     install_requires=[
-        "mkdocstrings>=0.22,<0.23",
-        "griffe>=0.34,<0.35",
+        "mkdocstrings>=0.26.1,<1",
+        "griffe>=1.3.1,<2",
         "mkdocs-material>=9.2,<10",
     ],
     include_package_data=True,
