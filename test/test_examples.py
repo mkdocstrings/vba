@@ -1,5 +1,6 @@
 import unittest
 from contextlib import contextmanager
+from logging import WARNING
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Generator
@@ -29,9 +30,10 @@ def tmp_build(config_file_path: Path) -> Generator[Path, None, None]:
 
 class TestExamples(unittest.TestCase):
     def test_example1(self) -> None:
-        with tmp_build(examples_dir.joinpath("example1", "mkdocs.yml")) as tmp_dir:
-            # TODO: Write assertions. For now, just check that it does not fail.
-            pass
+        with self.assertNoLogs(level=WARNING):
+            with tmp_build(examples_dir.joinpath("example1", "mkdocs.yml")) as tmp_dir:
+                # TODO: Write assertions. For now, just check that it does not fail.
+                pass
 
 
 if __name__ == "__main__":
