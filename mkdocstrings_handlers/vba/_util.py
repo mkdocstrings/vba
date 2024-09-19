@@ -162,7 +162,7 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
 
             docstring_value = "\n".join(uncomment_lines(docstring_lines))
 
-            # See https://mkdocstrings.github.io/griffe/usage/#using-griffe-as-a-docstring-parsing-library
+            # See https://mkdocstrings.github.io/griffe/guide/users/how-to/parse-docstrings/
             docstring = Docstring(
                 value=docstring_value,
                 parser=Parser.google,
@@ -180,6 +180,7 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
                             for arg in procedure["signature"].args
                         )
                     ),
+                    returns=procedure["signature"].return_type,
                 ),
             )
 
