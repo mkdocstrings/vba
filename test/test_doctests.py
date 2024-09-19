@@ -1,11 +1,10 @@
 import doctest
 import unittest
+from pathlib import Path
 from typing import Any, List
 from unittest import BaseTestSuite
 
-from locate import this_dir
-
-repo_dir = this_dir().parent
+repo_dir = Path(__file__).resolve().parent.parent
 
 
 # noinspection PyUnusedLocal
