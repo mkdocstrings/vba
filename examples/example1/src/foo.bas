@@ -21,6 +21,9 @@ Function fuzz_HotelEcho_helper( _
     '     Name: The name
     '     description: The description
     '
+    ' Returns:
+    '     A fancy ListObject
+    '
     ' Examples:
     '     >>> fuzz_HotelEcho_helper(sheet, "foo", "the sheet")
     '     ListObject(...)
