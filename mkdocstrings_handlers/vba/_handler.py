@@ -12,7 +12,6 @@ from typing import (
     MutableMapping,
     Dict,
     Mapping,
-    Set,
     Tuple,
 )
 
@@ -40,9 +39,17 @@ class VbaHandler(BaseHandler):
     The directory in which to look for VBA files.
     """
 
-    def __init__(self, *, base_dir: Path, **kwargs: Any) -> None:
+    encoding: str
+    """
+    The encoding to use when reading VBA files.
+    Excel exports .bas and .cls files as `latin1`.
+    See https://en.wikipedia.org/wiki/ISO/IEC_8859-1 .
+    """
+
+    def __init__(self, *, base_dir: Path, encoding: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.base_dir = base_dir
+        self.encoding = encoding
 
     name: str = "vba"
     """
@@ -121,9 +128,7 @@ class VbaHandler(BaseHandler):
         if not p.exists():
             raise CollectionError("File not found.")
 
-        with p.open("r") as f:
-            code = f.read()
-
+        code = p.read_text(encoding=self.encoding, errors="replace")
         code = collapse_long_lines(code)
 
         return VbaModuleInfo(
@@ -178,6 +183,7 @@ def get_handler(
     theme: str = "material",
     custom_templates: str | None = None,
     config_file_path: str | None = None,
+    encoding: str = "latin1",
     **kwargs: Any,
 ) -> VbaHandler:
     """
@@ -187,6 +193,10 @@ def get_handler(
         theme: The theme to use when rendering contents.
         custom_templates: Directory containing custom templates.
         config_file_path: The MkDocs configuration file path.
+        encoding:
+            The encoding to use when reading VBA files.
+            Excel exports .bas and .cls files as `latin1`.
+            See https://en.wikipedia.org/wiki/ISO/IEC_8859-1 .
         kwargs: Extra keyword arguments that we don't use.
 
     Returns:
@@ -198,6 +208,7 @@ def get_handler(
             if config_file_path
             else Path(".").resolve()
         ),
+        encoding=encoding,
         handler="vba",
         theme=theme,
         custom_templates=custom_templates,
