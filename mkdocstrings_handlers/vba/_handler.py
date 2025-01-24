@@ -4,8 +4,7 @@ This module implements a handler for the VBA language.
 
 from __future__ import annotations
 
-import copy
-from collections import ChainMap
+from copy import deepcopy
 from pathlib import Path
 from typing import (
     Any,
@@ -16,9 +15,9 @@ from typing import (
 )
 
 from griffe import patch_loggers
-from markdown import Markdown
+from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.exceptions import PluginError
-from mkdocstrings.handlers.base import BaseHandler, CollectionError
+from mkdocstrings import BaseHandler, CollectionError
 from mkdocstrings.loggers import get_logger
 
 from ._crossref import do_crossref, do_multi_crossref
@@ -51,12 +50,12 @@ class VbaHandler(BaseHandler):
         self.base_dir = base_dir
         self.encoding = encoding
 
-    name: str = "vba"
+    name: str = "vba"  # type: ignore[misc]
     """
     The handler's name.
     """
 
-    domain: str = "vba"
+    domain: str = "vba"  # type: ignore[misc]
     """
     The cross-documentation domain/language for this handler.
     """
@@ -107,6 +106,17 @@ class VbaHandler(BaseHandler):
     **`docstring_section_style`** | `str` | The style used to render docstring sections. Options: `table`, `list`, `spacy`. | `table`
     """
 
+    def get_options(self, local_options: Mapping[str, Any]) -> Dict[str, Any]:
+        """Combine the default options with the local options.
+
+        Arguments:
+            local_options: The options provided in Markdown pages.
+
+        Returns:
+            The combined options.
+        """
+        return deepcopy({**self.default_config, **local_options})
+
     def collect(
         self,
         identifier: str,
@@ -141,32 +151,32 @@ class VbaHandler(BaseHandler):
     def render(
         self,
         data: VbaModuleInfo,
-        config: Mapping[str, Any],
+        options: MutableMapping[str, Any],
+        *,
+        locale: str | None = None,
     ) -> str:
-        final_config = ChainMap(dict(copy.deepcopy(config)), self.default_config)
         template = self.env.get_template(f"module.html")
 
         # Heading level is a "state" variable, that will change at each step
         # of the rendering recursion. Therefore, it's easier to use it as a plain value
         # than as an item in a dictionary.
-        heading_level = final_config["heading_level"]
+        heading_level = options["heading_level"]
         try:
-            final_config["members_order"] = Order(final_config["members_order"])
+            options["members_order"] = Order(options["members_order"])
         except ValueError:
             choices = "', '".join(item.value for item in Order)
             raise PluginError(
-                f"Unknown members_order '{final_config['members_order']}', choose between '{choices}'."
+                f"Unknown members_order '{options['members_order']}', choose between '{choices}'."
             )
 
         return template.render(
-            config=final_config,
+            config=options,
             module=data,
             heading_level=heading_level,
             root=True,
         )
 
-    def update_env(self, md: Markdown, config: Dict[Any, Any]) -> None:
-        super().update_env(md, config)
+    def update_env(self, config: Dict[Any, Any]) -> None:
         self.env.trim_blocks = True
         self.env.lstrip_blocks = True
         self.env.keep_trailing_newline = False
@@ -174,42 +184,48 @@ class VbaHandler(BaseHandler):
         self.env.filters["multi_crossref"] = do_multi_crossref
         self.env.filters["order_members"] = do_order_members
 
-    def get_anchors(self, data: VbaModuleInfo) -> Tuple[str, ...]:
+    def get_aliases(self, identifier: str) -> Tuple[str, ...]:
+        """Get the aliases of the given identifier.
+
+        Aliases are used to register secondary URLs in mkdocs-autorefs,
+        to make sure cross-references work with any location of the same object.
+
+        Arguments:
+            identifier: The identifier to get aliases for.
+
+        Returns:
+            A tuple of aliases for the given identifier.
+        """
+        try:
+            data = self.collect(identifier, {})
+        except CollectionError:
+            return ()
         return data.path.as_posix(), *(p.signature.name for p in data.procedures)
 
 
 def get_handler(
     *,
-    theme: str = "material",
-    custom_templates: str | None = None,
-    config_file_path: str | None = None,
     encoding: str = "latin1",
+    tool_config: MkDocsConfig | None = None,
     **kwargs: Any,
 ) -> VbaHandler:
     """
     Get a new `VbaHandler`.
 
     Arguments:
-        theme: The theme to use when rendering contents.
-        custom_templates: Directory containing custom templates.
-        config_file_path: The MkDocs configuration file path.
         encoding:
             The encoding to use when reading VBA files.
             Excel exports .bas and .cls files as `latin1`.
             See https://en.wikipedia.org/wiki/ISO/IEC_8859-1 .
+        tool_config: SSG configuration.
         kwargs: Extra keyword arguments that we don't use.
 
     Returns:
         An instance of `VbaHandler`.
     """
-    return VbaHandler(
-        base_dir=(
-            Path(config_file_path).resolve().parent
-            if config_file_path
-            else Path(".").resolve()
-        ),
-        encoding=encoding,
-        handler="vba",
-        theme=theme,
-        custom_templates=custom_templates,
+    base_dir = (
+        Path(getattr(tool_config, "config_file_path", None) or "./mkdocs.yml")
+        .resolve()
+        .parent
     )
+    return VbaHandler(base_dir=base_dir, encoding=encoding, **kwargs)
