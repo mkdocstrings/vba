@@ -12,6 +12,7 @@ from typing import (
     Dict,
     Mapping,
     Tuple,
+    ClassVar,
 )
 
 from griffe import patch_loggers
@@ -50,17 +51,17 @@ class VbaHandler(BaseHandler):
         self.base_dir = base_dir
         self.encoding = encoding
 
-    name: str = "vba"  # type: ignore[misc]
+    name: ClassVar[str] = "vba"
     """
     The handler's name.
     """
 
-    domain: str = "vba"  # type: ignore[misc]
+    domain: ClassVar[str] = "vba"
     """
     The cross-documentation domain/language for this handler.
     """
 
-    fallback_theme = "material"
+    fallback_theme: ClassVar[str] = "material"
     """
     The theme to fall back to.
     """
