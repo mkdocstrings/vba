@@ -11,7 +11,7 @@ from mkdocstrings_handlers.vba._types import VbaModuleInfo
 def _test_collect(*, write_bytes: bytes, read_encoding: str) -> VbaModuleInfo:
     with TemporaryDirectory() as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
-        handler = get_handler(encoding=read_encoding)
+        handler = get_handler(encoding=read_encoding, mdx=[], mdx_config={})
         p = tmp_dir / "source.bas"
         p.write_bytes(write_bytes)
         return handler.collect(identifier=p.as_posix(), config={})
