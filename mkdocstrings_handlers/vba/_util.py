@@ -1,5 +1,5 @@
 import re
-from typing import List, Generator
+from typing import List, Generator, Tuple
 
 from griffe import Docstring, Function, Parameters, Parameter, Parser
 
@@ -132,7 +132,12 @@ def parse_signature(line: str) -> VbaSignatureInfo:
 
 def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
     lines = code.splitlines()
-    procedure = None
+
+    procedure: Tuple[VbaSignatureInfo, int] | None = None
+    """
+    The signature and first line number of the procedure currently being parsed,
+    or None when scanning for the start of the next procedure.
+    """
 
     for i, line in enumerate(lines):
         if procedure is None:
@@ -140,21 +145,17 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
             if not is_signature(line):
                 continue
 
-            procedure = {
-                "signature": parse_signature(line),
-                "first_line": i + 1,
-            }
+            procedure = parse_signature(line), i + 1
             continue
 
         if is_end(line):
             # Found the end of a procedure.
-            procedure["last_line"] = i + 1
+            signature, first_line = procedure
+            last_line = i + 1
 
             # The docstring consists of the comment lines directly after the signature.
             docstring_lines = []
-            procedure_source = lines[
-                procedure["first_line"] - 1 : procedure["last_line"] - 1
-            ]
+            procedure_source = lines[first_line - 1 : last_line - 1]
             for source_line in procedure_source[1:]:
                 if not is_comment(source_line):
                     break
@@ -167,9 +168,9 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
                 value=docstring_value,
                 parser=Parser.google,
                 parser_options={},
-                lineno=procedure["first_line"] + 1,
+                lineno=first_line + 1,
                 parent=Function(
-                    name=procedure["signature"].name,
+                    name=signature.name,
                     parameters=Parameters(
                         *(
                             Parameter(
@@ -177,19 +178,19 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
                                 annotation=arg.arg_type,
                                 default=arg.default,
                             )
-                            for arg in procedure["signature"].args
+                            for arg in signature.args
                         )
                     ),
-                    returns=procedure["signature"].return_type,
+                    returns=signature.return_type,
                 ),
             )
 
             # Yield it and start over.
             yield VbaProcedureInfo(
-                signature=procedure["signature"],
+                signature=signature,
                 docstring=docstring,
-                first_line=procedure["first_line"],
-                last_line=procedure["last_line"],
+                first_line=first_line,
+                last_line=last_line,
                 source=procedure_source,
             )
             procedure = None
