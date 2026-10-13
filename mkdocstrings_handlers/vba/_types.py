@@ -56,7 +56,7 @@ class VbaSignatureInfo:
 
         Args:
             show_arguments: Include parameters and an explicitly authored return type.
-            line_length: Wrap long parameter lists at this width, or None to keep one line.
+            line_length: Wrap long declarations at this width, or None to keep one line.
 
         Returns:
             The declaration, with VBA continuation markers when wrapped.
@@ -69,13 +69,15 @@ class VbaSignatureInfo:
         arguments = [argument.render() for argument in self.args]
         returns = f" As {self.return_type}" if self.return_type else ""
         signature = heading + "(" + ", ".join(arguments) + ")" + returns
-        if line_length is not None and len(signature) > line_length and arguments:
-            wrapped = (
-                heading
-                + "( _\n"
-                + ", _\n".join("    " + argument for argument in arguments)
-                + ")"
-            )
+        if line_length is not None and len(signature) > line_length:
+            wrapped = heading + "()"
+            if arguments:
+                wrapped = (
+                    heading
+                    + "( _\n"
+                    + ", _\n".join("    " + argument for argument in arguments)
+                    + ")"
+                )
             if returns and len(wrapped.rsplit("\n", 1)[-1] + returns) > line_length:
                 return wrapped + " _\n    " + returns.lstrip()
             return wrapped + returns

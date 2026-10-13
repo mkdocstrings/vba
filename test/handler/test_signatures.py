@@ -57,6 +57,35 @@ class TestSignatures(unittest.TestCase):
         self.assertIn(") _\n    As Long", wrapped)
         self.assertTrue(all(len(line) <= 40 for line in wrapped.splitlines()))
 
+    def test_wrapping_without_arguments(self) -> None:
+        """
+        Wrap zero-argument return clauses without splitting names or types.
+        """
+        for procedure_type in ("Function", "Property Get"):
+            with self.subTest(procedure_type=procedure_type):
+                heading = f"{procedure_type} aVeryLongProcedureName()"
+                declaration = heading + " As SomeLongReturnType"
+                signature = parse_signature(declaration)
+                wrapped = signature.render(show_arguments=True, line_length=40)
+                self.assertEqual(heading + " _\n    As SomeLongReturnType", wrapped)
+                self.assertTrue(all(len(line) <= 40 for line in wrapped.splitlines()))
+                for width in (None, len(declaration), len(declaration) + 1):
+                    self.assertEqual(
+                        declaration,
+                        signature.render(show_arguments=True, line_length=width),
+                    )
+        for declaration in (
+            "Sub aVeryLongProcedureNameWithoutAnyBreakPoints()",
+            "Function aVeryLongProcedureNameWithoutAnExplicitReturnType()",
+        ):
+            with self.subTest(declaration=declaration):
+                self.assertEqual(
+                    declaration,
+                    parse_signature(declaration).render(
+                        show_arguments=True, line_length=40
+                    ),
+                )
+
     def test_array_return_collection(self) -> None:
         """
         Keep array-return procedures and their complete documentation types.
