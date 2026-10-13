@@ -14,6 +14,7 @@ from griffe import (
 
 from mkdocstrings_handlers.vba._types import VbaProcedureInfo
 from mkdocstrings_handlers.vba._util import find_procedures
+from test.helpers import assert_no_warnings
 
 
 def _parse_parameters(
@@ -47,7 +48,7 @@ class TestParameterDocstrings(unittest.TestCase):
         """
         Find annotations and defaults without changing signature or docstring spelling.
         """
-        with self.assertNoLogs(level="WARNING"):
+        with assert_no_warnings():
             procedure, parameters = _parse_parameters(
                 code="""Function choose(camelCase As String, Optional count As Long = 2) As String
     ' Choose a value.
@@ -73,7 +74,7 @@ End Function"""
         """
         Preserve an explicit docstring type while retrieving a differently cased default.
         """
-        with self.assertNoLogs(level="WARNING"):
+        with assert_no_warnings():
             _, parameters = _parse_parameters(
                 code="""Sub useWidget(Optional value As String = "sample")
     ' Use a widget.
@@ -108,7 +109,7 @@ End Sub""")
         """
         Preserve indexed access and parameter identity while matching names by case.
         """
-        with self.assertNoLogs(level="WARNING"):
+        with assert_no_warnings():
             procedure, _ = _parse_parameters(code="""Sub useValue(camelCase As String)
     ' Use a value.
     '
@@ -131,7 +132,7 @@ End Sub""")
         """
         Match a differently cased ParamArray name and preserve Griffe's starred lookup.
         """
-        with self.assertNoLogs(level="WARNING"):
+        with assert_no_warnings():
             procedure, parsed = _parse_parameters(
                 code="""Sub useValues(ParamArray Args() As Variant)
     ' Use the values.

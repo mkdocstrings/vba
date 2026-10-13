@@ -13,6 +13,7 @@ from griffe import (
 
 from mkdocstrings_handlers.vba._types import VbaProcedureInfo
 from mkdocstrings_handlers.vba._util import find_procedures
+from test.helpers import assert_no_warnings
 
 
 def _parse_docstring(*, code: str) -> tuple[VbaProcedureInfo, list[DocstringSection]]:
@@ -39,7 +40,7 @@ class TestImplicitTypes(unittest.TestCase):
         """
         Infer untyped arguments, including optional defaults and mixed-case names.
         """
-        with self.assertNoLogs(level="WARNING"):
+        with assert_no_warnings():
             procedure, sections = _parse_docstring(code="""
 Sub useValues(value, Optional fallback = 2, ParamArray items())
     ' Use the supplied values.
@@ -69,7 +70,7 @@ End Sub
             ("fUnCtIoN", "Function"),
             ("pRoPeRtY gEt", "Property"),
         ):
-            with self.subTest(kind=kind), self.assertNoLogs(level="WARNING"):
+            with self.subTest(kind=kind), assert_no_warnings():
                 procedure, sections = _parse_docstring(code=f"""
 {kind} getValue()
     ' Get the value.
@@ -90,7 +91,7 @@ End {terminator}
         """
         Retain explicit parameter and return types beside implicit ones.
         """
-        with self.assertNoLogs(level="WARNING"):
+        with assert_no_warnings():
             procedure, sections = _parse_docstring(code="""
 Function getValue(value As Long, fallback) As String
     ' Get a string value.
@@ -118,7 +119,7 @@ End Function
         """
         Give explicit documentation types precedence over implicit Variant metadata.
         """
-        with self.assertNoLogs(level="WARNING"):
+        with assert_no_warnings():
             _, sections = _parse_docstring(code="""
 Function getValue(Optional value = 2)
     ' Get a string value.
@@ -145,7 +146,7 @@ End Function
         Infer argument types for Sub and Property Let without giving them returns.
         """
         for kind, terminator in (("Sub", "Sub"), ("Property Let", "Property")):
-            with self.subTest(kind=kind), self.assertNoLogs(level="WARNING"):
+            with self.subTest(kind=kind), assert_no_warnings():
                 procedure, sections = _parse_docstring(code=f"""
 {kind} setValue(value)
     ' Set the value.

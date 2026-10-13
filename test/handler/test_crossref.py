@@ -2,6 +2,8 @@
 Test reference markup and Griffe expression rendering.
 """
 
+from __future__ import annotations
+
 import unittest
 from html import unescape
 
