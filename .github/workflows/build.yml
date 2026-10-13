@@ -40,17 +40,29 @@ jobs:
           python -c "from importlib.util import find_spec; assert find_spec('material') is None"
       - name: Check installed package outside checkout
         run: |
-          cp -R examples/example1 "$RUNNER_TEMP/example1"
-          cd "$RUNNER_TEMP/example1"
-          python -m ${{ matrix.builder }} build --strict
+          for example in example1 example2
+          do
+            cp -R "examples/$example" "$RUNNER_TEMP/$example"
+            (
+              cd "$RUNNER_TEMP/$example"
+              python -m ${{ matrix.builder }} build --strict
+            )
+          done
+          cd "$RUNNER_TEMP"
           python - <<'PY'
           from importlib.resources import files
           from pathlib import Path
 
           for package in ("mkdocstrings_handlers", "mkdocstrings_handlers.vba"):
               assert files(package).joinpath("py.typed").is_file(), package
-          html = Path("site/index.html").read_text(encoding="utf-8")
+          html = Path("example1/site/index.html").read_text(encoding="utf-8")
           assert "fuzz_HotelEcho_helper" in html
           assert "The worksheet" in html
+          crossrefs = Path("example2/site/index.html").read_text(encoding="utf-8")
+          assert crossrefs.count('href="widget.html#Widget"') >= 3
+          assert 'href="widget.html#reset"' in crossrefs
+          assert 'title="MissingType"' in crossrefs
+          assert "<autoref " not in crossrefs
+          assert "data-autorefs-" not in crossrefs
           PY
           python -m pip check
