@@ -1,0 +1,11 @@
+site_name: Source display example
+site_url: ""
+theme: material
+plugins:
+  - mkdocstrings:
+      handlers:
+        vba:
+          options:
+            members_order: source
+markdown_extensions:
+  - pymdownx.highlight
