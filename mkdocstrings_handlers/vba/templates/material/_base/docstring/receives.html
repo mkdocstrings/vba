@@ -16,7 +16,7 @@
           {% if name_column %}<td>{% if receives.name %}<code>{{ receives.name }}</code>{% endif %}</td>{% endif %}
           <td>
             {% if receives.annotation %}
-              {% with expression = receives.annotation %}
+              {% with expression = receives.annotation|vba_annotation %}
                 <code>{% include "expression.html" with context %}</code>
               {% endwith %}
             {% endif %}
@@ -33,7 +33,7 @@
       <li class="field-body">
         {% if receives.name %}<b>{{ receives.name }}</b>{% endif %}
         {% if receives.annotation %}
-          {% with expression = receives.annotation %}
+          {% with expression = receives.annotation|vba_annotation %}
             {% if receives.name %}({% endif %}
             <code>{% include "expression.html" with context %}</code>
             {% if receives.name %}){% endif %}
@@ -59,7 +59,7 @@
               <code>{{ receives.name }}</code>
             {% elif receives.annotation %}
               <span class="doc-receives-annotation">
-                {% with expression = receives.annotation %}
+                {% with expression = receives.annotation|vba_annotation %}
                   <code>{% include "expression.html" with context %}</code>
                 {% endwith %}
               </span>
@@ -71,7 +71,7 @@
               <p>
                 <span class="doc-receives-annotation">
                   <b>TYPE:</b>
-                  {% with expression = receives.annotation %}
+                  {% with expression = receives.annotation|vba_annotation %}
                     <code>{% include "expression.html" with context %}</code>
                   {% endwith %}
                 </span>

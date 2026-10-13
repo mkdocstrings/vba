@@ -13,7 +13,7 @@
         <tr>
           <td>
             {% if warns.annotation %}
-              {% with expression = warns.annotation %}
+              {% with expression = warns.annotation|vba_annotation %}
                 <code>{% include "expression.html" with context %}</code>
               {% endwith %}
             {% endif %}
@@ -29,7 +29,7 @@
     {% for warns in section.value %}
       <li class="field-body">
         {% if warns.annotation %}
-          {% with expression = warns.annotation %}
+          {% with expression = warns.annotation|vba_annotation %}
             <code>{% include "expression.html" with context %}</code>
           {% endwith %}
           –
@@ -51,7 +51,7 @@
         <tr>
           <td>
             <span class="doc-warns-annotation">
-              {% with expression = warns.annotation %}
+              {% with expression = warns.annotation|vba_annotation %}
                 <code>{% include "expression.html" with context %}</code>
               {% endwith %}
             </span>
