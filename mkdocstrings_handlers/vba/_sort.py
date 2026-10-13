@@ -5,7 +5,7 @@ import sys
 from typing import Any, Sequence
 
 from griffe import Alias, Object
-from mkdocstrings.handlers.base import CollectorItem
+from mkdocstrings import CollectorItem
 
 
 class Order(enum.Enum):
