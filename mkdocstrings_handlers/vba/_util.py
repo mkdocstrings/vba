@@ -99,6 +99,26 @@ def uncomment_lines(lines: List[str]) -> List[str]:
     return [line.replace("'", "", 1) for line in lines]
 
 
+def _has_apostrophe_comment(*, line: str) -> bool:
+    """
+    Find an apostrophe comment outside VBA string literals.
+
+    Args:
+        line: Original VBA source line.
+
+    Returns:
+        Whether a full-line or inline apostrophe comment occurs outside quoted text.
+    """
+    in_string = False
+    for character in line:
+        if character == '"':
+            # Doubled quote escapes toggle twice, preserving the string state.
+            in_string = not in_string
+        elif character == "'" and not in_string:
+            return True
+    return False
+
+
 def _logical_lines(*, lines: List[str]) -> Generator[Tuple[str, int, int], None, None]:
     """
     Join continued statements while retaining their physical line boundaries.
@@ -115,7 +135,11 @@ def _logical_lines(*, lines: List[str]) -> Generator[Tuple[str, int, int], None,
         if not parts:
             first_line = last_line
         continuation = re.search(r" _[ \t]*$", line)
-        if continuation is not None and last_line < len(lines) and not is_comment(line):
+        if (
+            continuation is not None
+            and last_line < len(lines)
+            and not _has_apostrophe_comment(line=line)
+        ):
             parts.append(line[: continuation.start()] + " ")
             continue
         parts.append(line)
