@@ -4,8 +4,16 @@ Attribute VB_Name = "foo"
 '
 ' Examples:
 '
+'     Render a fenced VBA example:
+'
+'     ```vb
+'     MsgBox "Hello from VBA"
+'     ```
+'
 '     >>> foo(bar)
 '     baz
+'
+'     Continue with explanatory text.
 
 Option Explicit
 Option Compare Text
