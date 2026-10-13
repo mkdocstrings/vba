@@ -220,6 +220,11 @@ class VbaHandler(BaseHandler):
             module=data,
             heading_level=heading_level,
             root=True,
+            # Zensical 0.0.70 does not collect handler.extra_css as the MkDocs plugin does.
+            # Remove this fallback when Zensical includes handler stylesheets itself.
+            inline_css=(
+                self.extra_css if "zensical.extensions.mkdocstrings" in self.mdx else ""
+            ),
         )
 
     def update_env(self, config: Dict[Any, Any]) -> None:
