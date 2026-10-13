@@ -1,10 +1,12 @@
 {%- set original_expression = expression -%}
-{%- if original_expression is iterable and original_expression is not string -%}
+{%- if original_expression is string -%}
+  {{ original_expression }}
+{%- elif original_expression.classname == "ExprName" -%}
+  <autoref identifier="{{ original_expression.canonical_path }}" optional>{{ original_expression.name }}</autoref>
+{%- elif original_expression is iterable -%}
   {%- for expression in original_expression -%}
     {%- include "expression.html" with context -%}
   {%- endfor -%}
-{%- elif original_expression is string -%}
-  {{ original_expression }}
 {%- else -%}
-  <span data-autorefs-optional="{{ original_expression.full }}">{{ original_expression.source }}</span>
+  {{ original_expression }}
 {%- endif -%}
