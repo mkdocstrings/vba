@@ -64,6 +64,11 @@ jobs:
           assert 'title="MissingType"' in crossrefs
           assert "<code>VALUE</code>" in crossrefs
           assert "<code>LABEL</code>" in crossrefs
+          choose_value, current_value = crossrefs.split('id="chooseValue"', 1)[1].split('id="currentValue"', 1)
+          assert choose_value.count("<code>Variant</code>") == 3
+          assert current_value.count("<code>Variant</code>") == 1
+          assert "Public Function chooseValue(value, Optional fallback = 2)</code>" in choose_value
+          assert "Public Property Get currentValue()</code>" in current_value
           assert "<autoref " not in crossrefs
           assert "data-autorefs-" not in crossrefs
           PY
