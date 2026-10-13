@@ -102,6 +102,47 @@ class VbaProcedureInfo:
 
     source: List[str]
 
+    def argument_modifiers(self, *, name: str) -> str:
+        """
+        Find authored argument modifiers using VBA's name matching rules.
+
+        Args:
+            name: Parameter spelling used in the documentation.
+
+        Returns:
+            The authored Optional/ByVal/ByRef/ParamArray modifiers, or an empty string.
+        """
+        for argument in self.signature.args:
+            if argument.name.casefold() == name.lstrip("*").casefold():
+                return " ".join(
+                    part
+                    for part in (
+                        "Optional" if argument.optional else "",
+                        argument.modifier,
+                    )
+                    if part
+                )
+        return ""
+
+    def argument_optional(self, *, name: str) -> bool:
+        """
+        Check whether an argument can be omitted without an authored default.
+
+        Args:
+            name: Parameter spelling used in the documentation.
+
+        Returns:
+            Whether the matching argument is Optional or ParamArray.
+        """
+        return any(
+            argument.name.casefold() == name.lstrip("*").casefold()
+            and (
+                argument.optional
+                or (argument.modifier or "").casefold() == "paramarray"
+            )
+            for argument in self.signature.args
+        )
+
     @property
     def has_docstrings(self) -> bool:
         return self.docstring is not None
