@@ -25,6 +25,10 @@ Public Function SumNumbers(ByVal values As Variant) As Double
         Select Case VarType(item)
             Case vbByte, vbInteger, vbLong, vbSingle, vbDouble, vbCurrency, vbDecimal
                 SumNumbers = SumNumbers + CDbl(item)
+#If Win64 Then
+            Case vbLongLong
+                SumNumbers = SumNumbers + CDbl(item)
+#End If
         End Select
     Next item
 End Function
@@ -49,6 +53,10 @@ Public Function CountNumbers(ByVal values As Variant) As Long
         Select Case VarType(item)
             Case vbByte, vbInteger, vbLong, vbSingle, vbDouble, vbCurrency, vbDecimal
                 CountNumbers = CountNumbers + 1
+#If Win64 Then
+            Case vbLongLong
+                CountNumbers = CountNumbers + 1
+#End If
         End Select
     Next item
 End Function
