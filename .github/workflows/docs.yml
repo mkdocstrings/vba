@@ -48,16 +48,37 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      contents: read
       pages: write
       id-token: write
     concurrency:
       group: github-pages
+      queue: max
       cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Check deployment is current
+        id: current
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          latest_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/master" --jq '.object.sha')
+          if [[ ! "$latest_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Could not determine the current master commit."
+            exit 1
+          fi
+          if [[ "$GITHUB_SHA" == "$latest_sha" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping outdated documentation for $GITHUB_SHA; master is $latest_sha."
+          fi
       - uses: actions/configure-pages@v5
+        if: steps.current.outputs.deploy == 'true'
       - name: Deploy
+        if: steps.current.outputs.deploy == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
