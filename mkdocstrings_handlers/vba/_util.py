@@ -99,23 +99,29 @@ def uncomment_lines(lines: List[str]) -> List[str]:
     return [line.replace("'", "", 1) for line in lines]
 
 
-def _has_apostrophe_comment(*, line: str) -> bool:
+def _has_comment(*, line: str) -> bool:
     """
-    Find an apostrophe comment outside VBA string literals.
+    Find an apostrophe or Rem comment outside VBA string literals.
 
     Args:
         line: Original VBA source line.
 
     Returns:
-        Whether a full-line or inline apostrophe comment occurs outside quoted text.
+        Whether an apostrophe or Rem comment occurs outside quoted text.
     """
+    rem_comment = re.compile(r"[ \t]*(?:[0-9]+[ \t]+)?Rem(?:[ \t]|$)", re.IGNORECASE)
+    if rem_comment.match(line) is not None:
+        return True
     in_string = False
-    for character in line:
+    for index, character in enumerate(line):
         if character == '"':
             # Doubled quote escapes toggle twice, preserving the string state.
             in_string = not in_string
         elif character == "'" and not in_string:
             return True
+        elif character == ":" and not in_string:
+            if rem_comment.match(line, index + 1) is not None:
+                return True
     return False
 
 
@@ -138,7 +144,7 @@ def _logical_lines(*, lines: List[str]) -> Generator[Tuple[str, int, int], None,
         if (
             continuation is not None
             and last_line < len(lines)
-            and not _has_apostrophe_comment(line=line)
+            and not _has_comment(line=line)
         ):
             parts.append(line[: continuation.start()] + " ")
             continue
@@ -197,7 +203,9 @@ def is_end(line: str, *, procedure_type: str) -> bool:
     terminator = procedure_type.split()[0]
     return (
         re.fullmatch(
-            rf"End[ \t]+{terminator}[ \t]*(?:'.*)?", line.strip(), re.IGNORECASE
+            rf"End[ \t]+{terminator}[ \t]*(?:'.*|:[ \t]*Rem(?:[ \t].*)?)?",
+            line.strip(),
+            re.IGNORECASE,
         )
         is not None
     )
