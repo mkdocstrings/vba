@@ -54,7 +54,7 @@
       {% if config.show_source and procedure.source %}
         <details class="quote">
           <summary>Source code</summary>
-          {{ "\n".join(procedure.source)|highlight(language="vba", linestart=procedure.first_line, linenums=True) }}
+          {{ "\n".join(procedure.source)|highlight(language="vba", linestart=procedure.first_line, linenums=True, dedent=False) }}
         </details>
       {% endif %}
     </div>

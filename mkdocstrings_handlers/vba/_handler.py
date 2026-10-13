@@ -16,7 +16,7 @@ from typing import (
     Sequence,
 )
 
-from griffe import patch_loggers
+from griffe import Module, patch_loggers
 from markdown.extensions import Extension
 from mkdocs.exceptions import PluginError
 from mkdocstrings import BaseHandler, CollectionError, get_logger
@@ -24,7 +24,7 @@ from mkdocstrings import BaseHandler, CollectionError, get_logger
 from ._crossref import do_crossref, do_multi_crossref
 from ._sort import Order, do_order_members
 from ._types import VbaModuleInfo
-from ._util import find_file_docstring, collapse_long_lines, find_procedures
+from ._util import find_file_docstring, find_procedures
 
 patch_loggers(get_logger)
 
@@ -152,9 +152,10 @@ class VbaHandler(BaseHandler):
         identifier: str,
         config: MutableMapping[str, Any],
     ) -> VbaModuleInfo:
-        """Collect the documentation tree given an identifier and selection options.
+        """
+        Collect the documentation tree given an identifier and selection options.
 
-        Arguments:
+        Args:
             identifier: Which VBA file (.bas or .cls) to collect from.
             config: Selection options, used to alter the data collection.
 
@@ -169,13 +170,13 @@ class VbaHandler(BaseHandler):
             raise CollectionError("File not found.")
 
         code = p.read_text(encoding=self.encoding, errors="replace")
-        code = collapse_long_lines(code)
+        parent = Module(name=p.stem, filepath=p)
 
         return VbaModuleInfo(
-            docstring=find_file_docstring(code),
+            docstring=find_file_docstring(code, parent=parent),
             source=code.splitlines(),
             path=p,
-            procedures=list(find_procedures(code)),
+            procedures=list(find_procedures(code, parent=parent)),
         )
 
     def render(
