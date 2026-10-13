@@ -18,6 +18,47 @@ class TestMemberOrderingFiltering(unittest.TestCase):
     Honor the existing ordering and undocumented-member display options.
     """
 
+    def test_empty_module_documentation(self) -> None:
+        """
+        Omit modules with absent/whitespace docs unless undocumented output is requested.
+        """
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "docs").mkdir()
+            for filename, content in (
+                ("absent.bas", "Option Explicit\n"),
+                ("blank.bas", "'   \n'\t\n"),
+            ):
+                (root / filename).write_text(content, encoding="utf-8")
+                for mode in ("default", "all"):
+                    (root / "docs" / f"{filename}-{mode}.md").write_text(
+                        f"# Reference\n\n::: {filename}\n    handler: vba\n"
+                        "    options:\n      show_root_heading: true\n"
+                        f"      show_if_no_docstring: {str(mode == 'all').lower()}\n",
+                        encoding="utf-8",
+                    )
+            config_file = root / "mkdocs.yml"
+            config_file.write_text(
+                "site_name: Empty modules\nuse_directory_urls: false\n",
+                encoding="utf-8",
+            )
+            with assert_no_warnings():
+                build(
+                    config=load_config(
+                        config_file=str(config_file), plugins=["mkdocstrings"]
+                    )
+                )
+            for filename in ("absent.bas", "blank.bas"):
+                anchor = f'id="{(root / filename).as_posix()}"'
+                default = (root / "site" / f"{filename}-default.html").read_text(
+                    encoding="utf-8"
+                )
+                included = (root / "site" / f"{filename}-all.html").read_text(
+                    encoding="utf-8"
+                )
+                self.assertNotIn(anchor, default)
+                self.assertIn(anchor, included)
+
     def test_ordering_and_filtering(self) -> None:
         """
         Apply case-insensitive alphabetical/source order and retain explicit opt-in to empty docs.
