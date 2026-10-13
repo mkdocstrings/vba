@@ -158,6 +158,42 @@ class VbaModuleInfo:
 
     procedures: List[VbaProcedureInfo]
 
+    def procedure_anchor(
+        self, *, procedure: VbaProcedureInfo, show_if_no_docstring: bool
+    ) -> str:
+        """
+        Keep a property's bare anchor and distinguish its other visible accessors.
+
+        Args:
+            procedure: The procedure whose heading is being rendered.
+            show_if_no_docstring: Whether accessors with empty documentation are visible.
+
+        Returns:
+            The authored name for the visible getter or first accessor, otherwise a kind suffix.
+        """
+        name = procedure.signature.name
+        if not procedure.signature.procedure_type.casefold().startswith("property "):
+            return name
+        accessors = [
+            member
+            for member in self.procedures
+            # HTML identifiers are case-sensitive; preserve already distinct authored IDs.
+            if member.signature.name == name
+            and member.signature.procedure_type.casefold().startswith("property ")
+            and (show_if_no_docstring or member.has_docstrings)
+        ]
+        canonical = next(
+            (
+                member
+                for member in accessors
+                if member.signature.procedure_type.casefold() == "property get"
+            ),
+            next(iter(accessors), procedure),
+        )
+        if procedure is canonical:
+            return name
+        return name + "--" + procedure.signature.procedure_type.split()[-1].casefold()
+
     @property
     def has_docstrings(self) -> bool:
         return self.docstring is not None or any(

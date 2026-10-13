@@ -207,6 +207,9 @@ def check_crossrefs(*, site: Path, source: Path) -> None:
     )
     assert "Public Property Get currentValue()</code>" in current_value
     assert 'id="makeWidget"' in html and 'id="reset"' in widget
+    for identifier in ("item", "item--let", "item--set"):
+        assert widget.count(f'id="{identifier}"') == 1
+        assert f'href="widget.html#{identifier}"' in html
     module_id = (source / "Widget.cls").as_posix()
     module_ids = {module_id}
     if source.drive:

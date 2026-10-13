@@ -14,7 +14,7 @@ re_arg = re.compile(
 
 re_signature = re.compile(
     r"((?P<visibility>Private|Public) +)?"
-    r"(?P<type>Sub|Function|Property (Let|Get)) *"
+    r"(?P<type>Sub|Function|Property (Let|Get|Set)) *"
     r"(?P<name>[A-Z_][A-Z0-9_]*)\( *(?P<args>.*?) *\)"
     rf"( +As +(?P<returnType>{type_name}(?:\(\))?))?",
     re.IGNORECASE,

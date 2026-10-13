@@ -98,4 +98,4 @@ The getting-started commands use mkdocstrings 1.0.7, which supports PyMdown 12.2
 
 The handler documents procedures and their comments, rather than providing a complete VBA language reference.
 It supports ordinary `As` annotations, but does not interpret `DefType` statements or type suffixes.
-`Sub` and `Property Let` have no return type.
+`Sub`, `Property Let`, and `Property Set` have no return type.
