@@ -220,6 +220,14 @@ def check_source(*, site: Path, source: Path) -> None:
         source: Original example3 source directory.
     """
     html = (site / "index.html").read_text(encoding="utf-8")
+    code_blocks = [
+        unescape(re.sub(r"<[^>]+>", "", code)).rstrip("\n")
+        for code in re.findall(r"<code[^>]*>(.*?)</code>", html, re.DOTALL)
+    ]
+    assert (
+        "Public Function chooseValue( _\n    value As Long, _\n"
+        "    Optional fallback As Long = 2) _\n    As Long"
+    ) in code_blocks
     lines = (source / "source.bas").read_text(encoding="utf-8").splitlines()
     blocks = re.findall(r'<details class="quote">(.*?)</details>', html, re.DOTALL)
     assert len(blocks) == 2

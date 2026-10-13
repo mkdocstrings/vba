@@ -242,6 +242,7 @@ def parse_arg(arg: str) -> VbaArgumentInfo:
         name=groups["name"],
         arg_type=groups["type"],
         default=groups["default"],
+        array=bool(groups["array"]),
     )
 
 
