@@ -125,4 +125,10 @@ class VbaModuleInfo:
 
     @property
     def name(self) -> str:
-        return self.path.as_posix()
+        """
+        Return the source filename for headings that omit the full path.
+
+        Returns:
+            The source filename, including its extension.
+        """
+        return self.path.name

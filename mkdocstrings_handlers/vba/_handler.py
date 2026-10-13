@@ -144,8 +144,26 @@ class VbaHandler(BaseHandler):
 
         Returns:
             The combined options.
+
+        Raises:
+            PluginError: If a built-in rendering option has an invalid value.
         """
-        return deepcopy({**self.default_config, **self._options, **local_options})
+        options = deepcopy({**self.default_config, **self._options, **local_options})
+        for name, default in self.default_config.items():
+            if isinstance(default, bool) and not isinstance(options[name], bool):
+                raise PluginError(f"Invalid {name}: expected true or false.")
+        for name in ("heading_level", "line_length"):
+            if type(options[name]) is not int or options[name] < 1:
+                raise PluginError(f"Invalid {name}: expected a positive integer.")
+        for name, choices in (
+            ("docstring_section_style", ("table", "list", "spacy")),
+            ("members_order", tuple(item.value for item in Order)),
+        ):
+            if options[name] not in choices:
+                raise PluginError(
+                    f"Invalid {name} {options[name]!r}: choose from {', '.join(choices)}."
+                )
+        return options
 
     def collect(
         self,
