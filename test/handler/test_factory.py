@@ -20,6 +20,7 @@ from mkdocstrings import Handlers
 from mkdocstrings_handlers.vba import get_handler
 from mkdocstrings_handlers.vba._handler import VbaHandler
 from mkdocstrings_handlers.vba._types import VbaModuleInfo
+from test.helpers import assert_no_warnings
 
 
 class TestFactory(unittest.TestCase):
@@ -238,7 +239,7 @@ class TestConfiguredBuild(unittest.TestCase):
                 "markdown_extensions:\n  - admonition\n  - toc:\n      permalink: true\n",
                 encoding="utf-8",
             )
-            with self.assertNoLogs(level="WARNING"):
+            with assert_no_warnings():
                 build(config=load_config(config_file=str(config_file)))
             html = (root / "site" / "index.html").read_text(encoding="utf-8")
             headings = {
