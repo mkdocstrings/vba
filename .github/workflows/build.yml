@@ -40,7 +40,7 @@ jobs:
           python -c "from importlib.util import find_spec; assert find_spec('material') is None"
       - name: Check installed package outside checkout
         run: |
-          for example in example1 example2
+          for example in example1 example2 example3
           do
             cp -R "examples/$example" "$RUNNER_TEMP/$example"
             (
@@ -51,7 +51,9 @@ jobs:
           cd "$RUNNER_TEMP"
           python - <<'PY'
           from importlib.resources import files
+          from html import unescape
           from pathlib import Path
+          import re
 
           for package in ("mkdocstrings_handlers", "mkdocstrings_handlers.vba"):
               assert files(package).joinpath("py.typed").is_file(), package
@@ -71,5 +73,15 @@ jobs:
           assert "Public Property Get currentValue()</code>" in current_value
           assert "<autoref " not in crossrefs
           assert "data-autorefs-" not in crossrefs
+          source_html = Path("example3/site/index.html").read_text(encoding="utf-8")
+          source = Path("example3/src/source.bas").read_text().splitlines()
+          blocks = re.findall(r'<details class="quote">(.*?)</details>', source_html, re.DOTALL)
+          assert len(blocks) == 2
+          for block, first, last in zip(blocks, (6, 25), (23, 31)):
+              code = re.search(r"<code[^>]*>(.*?)</code>", block, re.DOTALL)
+              assert code is not None
+              assert unescape(re.sub(r"<[^>]+>", "", code[1])).splitlines() == source[first - 1:last]
+              numbers = re.findall(r'<span class="normal">\s*(\d+)</span>', block)
+              assert [int(n) for n in numbers] == list(range(first, last + 1))
           PY
           python -m pip check
