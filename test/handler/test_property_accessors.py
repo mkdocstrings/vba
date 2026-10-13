@@ -73,6 +73,15 @@ class TestPropertyAccessors(unittest.TestCase):
             ),
         )
 
+        module.procedures = [procedures[0], procedures[2]]
+        self.assertEqual(
+            ["Item", "Item--let"],
+            [
+                module.procedure_anchor(procedure=p, show_if_no_docstring=False)
+                for p in module.procedures
+            ],
+        )
+
     def test_hidden_getter(self) -> None:
         """
         Keep a bare anchor when only a setter has visible documentation.

@@ -169,7 +169,7 @@ class VbaModuleInfo:
             show_if_no_docstring: Whether accessors with empty documentation are visible.
 
         Returns:
-            The authored name for the getter or sole accessor, otherwise a kind suffix.
+            The authored name for the visible getter or first accessor, otherwise a kind suffix.
         """
         name = procedure.signature.name
         if not procedure.signature.procedure_type.casefold().startswith("property "):
