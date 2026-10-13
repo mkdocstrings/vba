@@ -1,6 +1,6 @@
 ' Uses [Widget][] and its [reset][] procedure.
 
-Public Function makeWidget(value As Widget, items As Variant, missing As MissingType, Optional label As String = "Widget") As Widget
+Public Function makeWidget(value As Widget, items As Variant, missing As MissingType, Optional label As String = "Widget, label") As Widget
     ' Build a [Widget][].
     '
     ' Args:
