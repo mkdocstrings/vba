@@ -1,0 +1,63 @@
+name: Documentation
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install -r docs/requirements.txt .
+          python -m pip check
+          python -c "from importlib.util import find_spec; assert find_spec('material') is None"
+      - name: Build documentation
+        run: python -I -m zensical build --clean --strict
+      - name: Check documentation
+        run: python -m test.check_docs docs/site
+      - name: Upload preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-preview
+          path: docs/site/
+          if-no-files-found: error
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/site/
+
+  deploy:
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
