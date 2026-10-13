@@ -2,7 +2,7 @@
 {% if config.show_if_no_docstring or procedure.has_docstrings %}
 
   <div class="doc doc-object doc-procedure">
-  {% with html_id = procedure.signature.name %}
+  {% with html_id = module.procedure_anchor(procedure=procedure, show_if_no_docstring=config.show_if_no_docstring) %}
 
     {% if not root or config.show_root_heading %}
 
