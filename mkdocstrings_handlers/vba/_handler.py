@@ -13,13 +13,13 @@ from typing import (
     Mapping,
     Tuple,
     ClassVar,
+    Sequence,
 )
 
 from griffe import patch_loggers
-from mkdocs.config.defaults import MkDocsConfig
+from markdown.extensions import Extension
 from mkdocs.exceptions import PluginError
-from mkdocstrings import BaseHandler, CollectionError
-from mkdocstrings.loggers import get_logger
+from mkdocstrings import BaseHandler, CollectionError, get_logger
 
 from ._crossref import do_crossref, do_multi_crossref
 from ._sort import Order, do_order_members
@@ -46,10 +46,38 @@ class VbaHandler(BaseHandler):
     See https://en.wikipedia.org/wiki/ISO/IEC_8859-1 .
     """
 
-    def __init__(self, *, base_dir: Path, encoding: str, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        *,
+        base_dir: Path,
+        encoding: str,
+        options: Mapping[str, Any],
+        theme: str,
+        custom_templates: str | None,
+        mdx: Sequence[str | Extension],
+        mdx_config: Mapping[str, Any],
+    ) -> None:
+        """
+        Initialize the VBA handler.
+
+        Args:
+            base_dir: Directory used to resolve relative VBA source paths.
+            encoding: Encoding used to read VBA sources.
+            options: Handler-wide selection and rendering options.
+            theme: Theme used to select templates.
+            custom_templates: Directory containing custom handler templates.
+            mdx: Markdown extensions used to render docstrings.
+            mdx_config: Configuration for the Markdown extensions.
+        """
+        super().__init__(
+            theme=theme,
+            custom_templates=custom_templates,
+            mdx=mdx,
+            mdx_config=mdx_config,
+        )
         self.base_dir = base_dir
         self.encoding = encoding
+        self._options = deepcopy(dict(options))
 
     name: ClassVar[str] = "vba"
     """
@@ -108,15 +136,16 @@ class VbaHandler(BaseHandler):
     """
 
     def get_options(self, local_options: Mapping[str, Any]) -> Dict[str, Any]:
-        """Combine the default options with the local options.
+        """
+        Combine default, handler-wide, and directive options.
 
-        Arguments:
+        Args:
             local_options: The options provided in Markdown pages.
 
         Returns:
             The combined options.
         """
-        return deepcopy({**self.default_config, **local_options})
+        return deepcopy({**self.default_config, **self._options, **local_options})
 
     def collect(
         self,
@@ -156,7 +185,22 @@ class VbaHandler(BaseHandler):
         *,
         locale: str | None = None,
     ) -> str:
-        template = self.env.get_template(f"module.html")
+        """
+        Render a collected VBA module without changing its options.
+
+        Args:
+            data: Collected module documentation.
+            options: Combined selection and rendering options.
+            locale: Requested locale; the bundled templates use English.
+
+        Returns:
+            Rendered HTML documentation.
+
+        Raises:
+            PluginError: If the requested member ordering is unknown.
+        """
+        options = deepcopy(options)
+        template = self.env.get_template("module.html")
 
         # Heading level is a "state" variable, that will change at each step
         # of the rendering recursion. Therefore, it's easier to use it as a plain value
@@ -178,6 +222,12 @@ class VbaHandler(BaseHandler):
         )
 
     def update_env(self, config: Dict[Any, Any]) -> None:
+        """
+        Register VBA template filters and whitespace settings.
+
+        Args:
+            config: Rendering configuration supplied by mkdocstrings.
+        """
         self.env.trim_blocks = True
         self.env.lstrip_blocks = True
         self.env.keep_trailing_newline = False
@@ -206,27 +256,51 @@ class VbaHandler(BaseHandler):
 
 def get_handler(
     *,
-    encoding: str = "latin1",
-    tool_config: MkDocsConfig | None = None,
+    encoding: str | None = None,
+    tool_config: Any = None,
+    handler_config: Mapping[str, Any] | None = None,
+    theme: str = "material",
+    custom_templates: str | None = None,
+    mdx: Sequence[str | Extension] | None = None,
+    mdx_config: Mapping[str, Any] | None = None,
     **kwargs: Any,
 ) -> VbaHandler:
     """
     Get a new `VbaHandler`.
 
-    Arguments:
+    Args:
         encoding:
-            The encoding to use when reading VBA files.
+            Explicit source encoding, overriding handler configuration.
+            Defaults to the configured encoding, or Latin-1 when not configured.
             Excel exports .bas and .cls files as `latin1`.
             See https://en.wikipedia.org/wiki/ISO/IEC_8859-1 .
-        tool_config: SSG configuration.
-        kwargs: Extra keyword arguments that we don't use.
+        tool_config: SSG configuration exposing its config file path as an attribute or mapping key.
+        handler_config: Handler configuration, including encoding and global options.
+        theme: Theme used to select templates; Material by default.
+        custom_templates: Directory containing custom handler templates.
+        mdx: Markdown extensions used to render docstrings; empty when omitted.
+        mdx_config: Configuration for the Markdown extensions; empty when omitted.
+        **kwargs: Additional factory arguments, ignored for forward compatibility.
 
     Returns:
         An instance of `VbaHandler`.
     """
-    base_dir = (
-        Path(getattr(tool_config, "config_file_path", None) or "./mkdocs.yml")
-        .resolve()
-        .parent
+    handler_config = {} if handler_config is None else handler_config
+    config_file_path = (
+        tool_config.get("config_file_path")
+        if isinstance(tool_config, Mapping)
+        else getattr(tool_config, "config_file_path", None)
     )
-    return VbaHandler(base_dir=base_dir, encoding=encoding, **kwargs)
+    return VbaHandler(
+        base_dir=Path(config_file_path or "./mkdocs.yml").resolve().parent,
+        encoding=(
+            encoding
+            if encoding is not None
+            else handler_config.get("encoding", "latin1")
+        ),
+        options=handler_config.get("options", {}),
+        theme=theme,
+        custom_templates=custom_templates,
+        mdx=() if mdx is None else mdx,
+        mdx_config={} if mdx_config is None else mdx_config,
+    )
