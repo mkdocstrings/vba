@@ -4,21 +4,6 @@ on: [push, pull_request]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - builder: mkdocs
-            mkdocstrings: '1.0.7'
-            pymdown: '>=12.2'
-          # Compatibility workaround for mkdocstrings 0.30.1:
-          # PyMdown >=12.2 requires the new Highlight constructor.
-          # Zensical needs >=11; remove the upper bound when dropping 0.30.1.
-          - builder: zensical
-            mkdocstrings: '0.30.1'
-            pymdown: '>=11,<12.2'
-          - builder: zensical
-            mkdocstrings: '1.0.7'
-            pymdown: '>=12.2'
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -32,82 +17,76 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --group build
-      - name: Build distributions
+      - name: Build wheel from source distribution
         run: python -m build
       - name: Check distribution metadata
         run: python -m twine check --strict dist/*
-      - name: Install wheel
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/*
+          if-no-files-found: error
+
+  installed:
+    needs: build
+    name: ${{ matrix.builder }} / mkdocstrings ${{ matrix.mkdocstrings }} / ${{ matrix.distribution }}
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution: ['whl', 'tar.gz']
+        environment: ['mkdocs', 'zensical-0.30.1', 'zensical-1.0.7']
+        include:
+          - environment: mkdocs
+            builder: mkdocs
+            mkdocstrings: '1.0.7'
+            pymdown: '>=12.2'
+          # Compatibility workaround for mkdocstrings 0.30.1:
+          # Its Highlighter cannot construct PyMdown >=12.2.
+          # Zensical requires >=11; remove the upper bound when dropping 0.30.1.
+          - environment: zensical-0.30.1
+            builder: zensical
+            mkdocstrings: '0.30.1'
+            pymdown: '>=11,<12.2'
+          - environment: zensical-1.0.7
+            builder: zensical
+            mkdocstrings: '1.0.7'
+            pymdown: '>=12.2'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist
+      - name: Install distribution and handler dependencies
         run: |
-          python -m pip install dist/*.whl \
+          python -m pip install dist/*.${{ matrix.distribution }} \
             "mkdocstrings==${{ matrix.mkdocstrings }}" \
             "pymdown-extensions${{ matrix.pymdown }}"
           python -m pip check
-      - name: Check base installation excludes Material
-        run: python -c "from importlib.util import find_spec; assert find_spec('material') is None"
+          python -c "from importlib.util import find_spec; assert find_spec('material') is None"
       - name: Install MkDocs Material
         if: matrix.builder == 'mkdocs'
         run: python -m pip install "mkdocs-material>=9.2,<10"
-      - name: Install Zensical
+      - name: Install Zensical without Material
         if: matrix.builder == 'zensical'
         run: |
           python -m pip install zensical==0.0.70
           python -c "from importlib.util import find_spec; assert find_spec('material') is None"
-      - name: Check installed package outside checkout
+      - name: Build and check examples outside checkout
         env:
           BUILDER: ${{ matrix.builder }}
         run: |
+          cp -R examples "$RUNNER_TEMP/examples"
+          cp test/site_checks.py "$RUNNER_TEMP/check_sites.py"
+          cd "$RUNNER_TEMP"
           for example in example1 example2 example3
           do
-            cp -R "examples/$example" "$RUNNER_TEMP/$example"
-            (
-              cd "$RUNNER_TEMP/$example"
-              python -m ${{ matrix.builder }} build --strict
-            )
+            (cd "examples/$example" && python -I -m "$BUILDER" build --strict)
           done
-          cd "$RUNNER_TEMP"
-          python - <<'PY'
-          from importlib.resources import files
-          from html import unescape
-          from pathlib import Path
-          import os
-          import re
-
-          for package in ("mkdocstrings_handlers", "mkdocstrings_handlers.vba"):
-              assert files(package).joinpath("py.typed").is_file(), package
-          bundled_css = files("mkdocstrings_handlers.vba").joinpath("templates/material/style.css").read_text()
-          for example in ("example1", "example2", "example3"):
-              page = Path(example, "site/index.html").read_text(encoding="utf-8")
-              if os.environ["BUILDER"] == "zensical":
-                  styles = re.findall(r"<style data-mkdocstrings-vba[^>]*>(.*?)</style>", page, re.DOTALL)
-                  assert styles and all(style.strip() == bundled_css.strip() for style in styles)
-              else:
-                  assert "data-mkdocstrings-vba" not in page
-                  assert bundled_css.strip() in Path(example, "site/assets/_mkdocstrings.css").read_text()
-          html = Path("example1/site/index.html").read_text(encoding="utf-8")
-          assert "fuzz_HotelEcho_helper" in html
-          assert "The worksheet" in html
-          crossrefs = Path("example2/site/index.html").read_text(encoding="utf-8")
-          assert crossrefs.count('href="widget.html#Widget"') >= 3
-          assert 'href="widget.html#reset"' in crossrefs
-          assert 'title="MissingType"' in crossrefs
-          assert "<code>VALUE</code>" in crossrefs
-          assert "<code>LABEL</code>" in crossrefs
-          choose_value, current_value = crossrefs.split('id="chooseValue"', 1)[1].split('id="currentValue"', 1)
-          assert choose_value.count("<code>Variant</code>") == 3
-          assert current_value.count("<code>Variant</code>") == 1
-          assert "Public Function chooseValue(value, Optional fallback = 2)</code>" in choose_value
-          assert "Public Property Get currentValue()</code>" in current_value
-          assert "<autoref " not in crossrefs
-          assert "data-autorefs-" not in crossrefs
-          source_html = Path("example3/site/index.html").read_text(encoding="utf-8")
-          source = Path("example3/src/source.bas").read_text().splitlines()
-          blocks = re.findall(r'<details class="quote">(.*?)</details>', source_html, re.DOTALL)
-          assert len(blocks) == 2
-          for block, first, last in zip(blocks, (6, 25), (23, 31)):
-              code = re.search(r"<code[^>]*>(.*?)</code>", block, re.DOTALL)
-              assert code is not None
-              assert unescape(re.sub(r"<[^>]+>", "", code[1])).splitlines() == source[first - 1:last]
-              numbers = re.findall(r'<span class="normal">\s*(\d+)</span>', block)
-              assert [int(n) for n in numbers] == list(range(first, last + 1))
-          PY
+          python -I check_sites.py examples --builder "$BUILDER" --installed
           python -m pip check
