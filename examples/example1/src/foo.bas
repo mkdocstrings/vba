@@ -4,16 +4,8 @@ Attribute VB_Name = "foo"
 '
 ' Examples:
 '
-'     Render a fenced VBA example:
-'
-'     ```vb
-'     MsgBox "Hello from VBA"
-'     ```
-'
 '     >>> foo(bar)
 '     baz
-'
-'     Continue with explanatory text.
 
 Option Explicit
 Option Compare Text
@@ -33,8 +25,16 @@ Function fuzz_HotelEcho_helper( _
     '     A fancy ListObject
     '
     ' Examples:
+    '     Render a fenced VBA example:
+    '
+    '     ```vb
+    '     MsgBox "Hello from VBA"
+    '     ```
+    '
     '     >>> fuzz_HotelEcho_helper(sheet, "foo", "the sheet")
     '     ListObject(...)
+    '
+    '     Continue with explanatory text.
 
     ' This comment is not part of the docs.
     If moo Then
