@@ -165,12 +165,56 @@ class TestSourceLocations(unittest.TestCase):
         """
         Keep an underscore in a terminator comment from absorbing the next signature.
         """
-        lines = ["Sub first()", "    ' First.", "End Sub ' explanation _"]
-        later = ["Sub later()", "    ' Later.", "End Sub"]
-        first, second = find_procedures("\n".join(lines + later))
-        self.assertEqual(lines, first.source)
-        self.assertEqual((1, 3), (first.first_line, first.last_line))
-        self.assertEqual(later, second.source)
+        for terminator in ("End Sub ' explanation _", "End Sub: Rem explanation _"):
+            with self.subTest(terminator=terminator):
+                lines = ["Sub first()", "    ' First.", terminator]
+                later = ["Sub later()", "    ' Later.", "End Sub"]
+                first, second = find_procedures("\n".join(lines + later))
+                self.assertEqual(lines, first.source)
+                self.assertEqual((1, 3), (first.first_line, first.last_line))
+                self.assertEqual(later, second.source)
+
+    def test_rem_comment_underscore(self) -> None:
+        """
+        Preserve procedure boundaries around Rem comments, labels, and line numbers.
+        """
+        for statement in (
+            "    Rem explanation _",
+            "\trEm explanation _",
+            "10 Rem explanation _",
+            "label: Rem explanation _",
+            "    value = 1: Rem explanation _",
+            '    value = "prefix: Rem" : Rem "quoted comment _',
+        ):
+            for newline in ("\n", "\r\n"):
+                with self.subTest(statement=statement, newline=repr(newline)):
+                    lines = ["Sub first()", "    ' First.", statement, "End Sub"]
+                    later = ["Sub later()", "    ' Later.", "End Sub"]
+                    first, second = find_procedures(newline.join(lines + later))
+                    self.assertEqual(lines, first.source)
+                    self.assertEqual((1, 4), (first.first_line, first.last_line))
+                    self.assertEqual(later, second.source)
+                    final_procedure = list(find_procedures(newline.join(lines)))
+                    self.assertEqual(1, len(final_procedure))
+                    self.assertEqual(lines, final_procedure[0].source)
+                    assert first.docstring is not None
+                    self.assertEqual("First.", first.docstring.value)
+
+    def test_rem_text_in_continuations(self) -> None:
+        """
+        Keep genuine continuations containing Rem text in identifiers or quoted strings.
+        """
+        for statement in (
+            "remaining = 1 + _",
+            'value = "Rem explanation" & _',
+            'value = "prefix: Rem explanation" & _',
+            'value = "say ""Rem don\'t""" & _',
+        ):
+            with self.subTest(statement=statement):
+                self.assertEqual(
+                    [(statement[:-1] + '    " next"', 1, 2)],
+                    list(_logical_lines(lines=[statement, '    " next"'])),
+                )
 
     def test_quoted_apostrophes_in_continuations(self) -> None:
         """
