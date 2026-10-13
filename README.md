@@ -26,15 +26,18 @@ To build an example site:
 
 ## Running tests
 
+Use Python 3.12 or newer for development.
+
 ```shell
-pip install -r test-requirements.txt
+python -m pip install --upgrade pip
+python -m pip install --group dev -e .
 python -m unittest
 ```
 
 This will run all tests. This includes
 
-- Unit tests from `tests/`.
-- Doctests from `mkdocstrings_vba/`.
+- Unit tests from `test/`.
+- Doctests from `mkdocstrings_handlers/vba/`.
 - Full builds from `examples/`.
 
 ## Linting
@@ -42,11 +45,18 @@ This will run all tests. This includes
 Fix code style using `black`:
 
 ```shell
-black .
+python -m black .
 ```
 
 Check types using `mypy`:
 
 ```shell
-mypy .
+python -m mypy
+```
+
+## Building distributions
+
+```shell
+python -m build
+python -m twine check --strict dist/*
 ```

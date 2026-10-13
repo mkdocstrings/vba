@@ -1,0 +1,38 @@
+name: Build distributions
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --group build
+      - name: Build distributions
+        run: python -m build
+      - name: Check distribution metadata
+        run: python -m twine check --strict dist/*
+      - name: Install wheel
+        run: |
+          python -m pip install dist/*.whl
+          python -m pip check
+      - name: Check installed package outside checkout
+        run: |
+          cp -R examples/example1 "$RUNNER_TEMP/example1"
+          cd "$RUNNER_TEMP/example1"
+          python -m mkdocs build --strict
+          python - <<'PY'
+          from importlib.resources import files
+
+          for package in ("mkdocstrings_handlers", "mkdocstrings_handlers.vba"):
+              assert files(package).joinpath("py.typed").is_file(), package
+          PY
