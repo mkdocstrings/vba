@@ -4,6 +4,9 @@ on: [push, pull_request]
 
 jobs:
   build:
+    strategy:
+      matrix:
+        builder: ['mkdocs', 'zensical']
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -25,14 +28,29 @@ jobs:
         run: |
           python -m pip install dist/*.whl
           python -m pip check
+      - name: Check base installation excludes Material
+        run: python -c "from importlib.util import find_spec; assert find_spec('material') is None"
+      - name: Install MkDocs Material
+        if: matrix.builder == 'mkdocs'
+        run: python -m pip install "mkdocs-material>=9.2,<10"
+      - name: Install Zensical
+        if: matrix.builder == 'zensical'
+        run: |
+          python -m pip install zensical==0.0.70
+          python -c "from importlib.util import find_spec; assert find_spec('material') is None"
       - name: Check installed package outside checkout
         run: |
           cp -R examples/example1 "$RUNNER_TEMP/example1"
           cd "$RUNNER_TEMP/example1"
-          python -m mkdocs build --strict
+          python -m ${{ matrix.builder }} build --strict
           python - <<'PY'
           from importlib.resources import files
+          from pathlib import Path
 
           for package in ("mkdocstrings_handlers", "mkdocstrings_handlers.vba"):
               assert files(package).joinpath("py.typed").is_file(), package
+          html = Path("site/index.html").read_text(encoding="utf-8")
+          assert "fuzz_HotelEcho_helper" in html
+          assert "The worksheet" in html
           PY
+          python -m pip check
