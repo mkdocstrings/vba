@@ -29,7 +29,7 @@
                 <code>{% include "expression.html" with context %}</code>
               {% endwith %}
             {% else %}
-              <em>required</em>
+              <em>{% if procedure.argument_optional(name=parameter.name) %}optional{% else %}required{% endif %}</em>
             {% endif %}
           </td>
           <td>{{ procedure.argument_modifiers(name=parameter.name) or "—" }}</td>

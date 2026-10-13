@@ -124,6 +124,25 @@ class VbaProcedureInfo:
                 )
         return ""
 
+    def argument_optional(self, *, name: str) -> bool:
+        """
+        Check whether an argument can be omitted without an authored default.
+
+        Args:
+            name: Parameter spelling used in the documentation.
+
+        Returns:
+            Whether the matching argument is Optional or ParamArray.
+        """
+        return any(
+            argument.name.casefold() == name.lstrip("*").casefold()
+            and (
+                argument.optional
+                or (argument.modifier or "").casefold() == "paramarray"
+            )
+            for argument in self.signature.args
+        )
+
     @property
     def has_docstrings(self) -> bool:
         return self.docstring is not None

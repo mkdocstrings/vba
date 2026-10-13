@@ -27,9 +27,10 @@ class TestParameterDetails(unittest.TestCase):
             root = Path(temporary)
             (root / "docs").mkdir()
             (root / "source.bas").write_text(
-                'Sub useValues(ByVal value As String, Optional ByRef fallback As String = "a&b")\n'
+                'Sub useValues(ByVal value As String, Optional ByRef fallback As String = "a&b", Optional extra)\n'
                 "    ' Use values.\n    '\n    ' Args:\n"
-                "    '     VALUE: The value.\n    '     FALLBACK: The fallback.\nEnd Sub\n"
+                "    '     VALUE: The value.\n    '     FALLBACK: The fallback.\n"
+                "    '     EXTRA: An optional value.\nEnd Sub\n"
                 "Sub useItems(ParamArray items() As Variant)\n"
                 "    ' Use items.\n    '\n    ' Args:\n    '     ITEMS: The items.\nEnd Sub\n",
                 encoding="utf-8",
@@ -58,6 +59,9 @@ class TestParameterDetails(unittest.TestCase):
                 self.assertNotIn("TODO", text)
                 self.assertNotIn("&amp;", text)
                 if style == "table":
+                    markers = re.findall(r"<em>(required|optional)</em>", html)
+                    self.assertEqual(1, markers.count("required"))
+                    self.assertEqual(2, markers.count("optional"))
                     self.assertIn("ByVal", text)
                     self.assertIn("Optional ByRef", text)
                     self.assertIn("ParamArray", text)
