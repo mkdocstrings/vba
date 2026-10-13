@@ -1,6 +1,6 @@
 # mkdocstrings-vba
 
-A VBA handler for [mkdocstrings](https://github.com/mkdocstrings/mkdocstrings).
+A VBA handler for [mkdocstrings](https://github.com/mkdocstrings/mkdocstrings) and [Zensical](https://zensical.org/).
 
 Since there is no official way of documenting VBA functions, we have opted for
 the [Google Docstring format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) commonly used
@@ -11,18 +11,37 @@ VBA [Function](https://learn.microsoft.com/en-us/office/vba/language/reference/u
 or [Sub](https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/sub-statement) signatures,
 which we parse using [regex](https://regular-expressions.info).
 
+## Installation
+
+For Zensical:
+
+```shell
+python -m pip install zensical mkdocstrings-vba
+```
+
+For MkDocs Material:
+
+```shell
+python -m pip install "mkdocstrings-vba[material]"
+```
+
+The `material` extra installs the MkDocs Material theme.
+Zensical uses its own theme and does not need this extra.
+
 ## Examples
 
 See the [`examples`](https://github.com/mkdocstrings/vba/tree/master/examples) folder.
 
 To build an example site:
 
-1. `pip install mkdocstrings mkdocstrings-vba`
+1. `python -m pip install "mkdocstrings-vba[material]"`
 2. `cd examples/example1`
 3. View the source code.
 4. `mkdocs build`
 5. cd `site/`
 6. View the results.
+
+For Zensical, use the Zensical installation above and run `zensical build` in the same example folder.
 
 ## Running tests
 
