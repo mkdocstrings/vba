@@ -217,6 +217,15 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
 
             docstring_value = "\n".join(uncomment_lines(docstring_lines))
 
+            # Supply VBA's implicit types only to docstring parsing.
+            # Keep the authored signature unchanged for display.
+            return_type = signature.return_type
+            if return_type is None and signature.procedure_type.casefold() in (
+                "function",
+                "property get",
+            ):
+                return_type = "Variant"
+
             # See https://mkdocstrings.github.io/griffe/guide/users/how-to/parse-docstrings/
             docstring = Docstring(
                 value=docstring_value,
@@ -229,13 +238,13 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
                         *(
                             Parameter(
                                 name=arg.name,
-                                annotation=arg.arg_type,
+                                annotation=arg.arg_type or "Variant",
                                 default=arg.default,
                             )
                             for arg in signature.args
                         )
                     ),
-                    returns=signature.return_type,
+                    returns=return_type,
                 ),
             )
 
