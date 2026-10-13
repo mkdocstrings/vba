@@ -12,3 +12,23 @@ Public Function makeWidget(value As Widget, items As Variant, missing As Missing
     ' Returns:
     '     Widget: The resulting widget.
 End Function
+
+Public Function chooseValue(value, Optional fallback = 2)
+    ' Choose a value.
+    '
+    ' Args:
+    '     VALUE: The preferred value.
+    '     fallback: The fallback value.
+    '
+    ' Returns:
+    '     The selected value.
+    chooseValue = value
+End Function
+
+Public Property Get currentValue()
+    ' Read the current value.
+    '
+    ' Returns:
+    '     The current value.
+    currentValue = 2
+End Property

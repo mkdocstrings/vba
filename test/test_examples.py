@@ -54,6 +54,16 @@ class TestExamples(unittest.TestCase):
         self.assertIn('title="MissingType"', html)
         self.assertIn("<code>VALUE</code>", html)
         self.assertIn("<code>LABEL</code>", html)
+        choose_value, current_value = html.split('id="chooseValue"', 1)[1].split(
+            'id="currentValue"', 1
+        )
+        self.assertEqual(3, choose_value.count("<code>Variant</code>"))
+        self.assertEqual(1, current_value.count("<code>Variant</code>"))
+        self.assertIn(
+            "Public Function chooseValue(value, Optional fallback = 2)</code>",
+            choose_value,
+        )
+        self.assertIn("Public Property Get currentValue()</code>", current_value)
         self.assertNotIn("<autoref ", html)
         self.assertNotIn("data-autorefs-", html)
         self.assertIn('id="makeWidget"', html)
