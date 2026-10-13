@@ -3,7 +3,7 @@
 
   <div class="doc doc-children">
 
-    {% for procedure in obj.procedures %}
+    {% for procedure in obj.procedures|order_procedures(order=config.members_order) %}
 
       {% with procedure = procedure %}
         {% include "procedure.html" with context %}

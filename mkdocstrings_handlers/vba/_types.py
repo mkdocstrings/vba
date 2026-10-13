@@ -145,7 +145,7 @@ class VbaProcedureInfo:
 
     @property
     def has_docstrings(self) -> bool:
-        return self.docstring is not None
+        return self.docstring is not None and bool(self.docstring.value.strip())
 
 
 @dataclass
@@ -160,9 +160,9 @@ class VbaModuleInfo:
 
     @property
     def has_docstrings(self) -> bool:
-        return self.docstring is not None or any(
-            p.has_docstrings for p in self.procedures
-        )
+        return (
+            self.docstring is not None and bool(self.docstring.value.strip())
+        ) or any(p.has_docstrings for p in self.procedures)
 
     @property
     def name(self) -> str:
