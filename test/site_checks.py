@@ -192,6 +192,10 @@ def check_crossrefs(*, site: Path, source: Path) -> None:
     assert 'href="widget.html#reset"' in html
     assert 'title="MissingType"' in html
     assert "<code>VALUE</code>" in html and "<code>LABEL</code>" in html
+    assert '"Widget, label"' in {
+        unescape(re.sub(r"<[^>]+>", "", code)).strip()
+        for code in re.findall(r"<code[^>]*>(.*?)</code>", html, re.DOTALL)
+    }
     choose_value, current_value = html.split('id="chooseValue"', 1)[1].split(
         'id="currentValue"', 1
     )

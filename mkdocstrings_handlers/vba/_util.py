@@ -219,8 +219,22 @@ def parse_args(args: str) -> Generator[VbaArgumentInfo, None, None]:
     if not len(args):
         return
 
-    for arg in args.split(","):
-        yield parse_arg(arg)
+    first = 0
+    in_string = False
+    for index, character in enumerate(args):
+        if character == '"':
+            # Doubled quotes toggle twice, keeping separators inside the string.
+            in_string = not in_string
+        elif character == "," and not in_string:
+            if not args[first:index].strip():
+                raise RuntimeError("Empty argument in procedure signature.")
+            yield parse_arg(args[first:index])
+            first = index + 1
+    if in_string:
+        raise RuntimeError("Unterminated string in procedure arguments.")
+    if not args[first:].strip():
+        raise RuntimeError("Empty argument in procedure signature.")
+    yield parse_arg(args[first:])
 
 
 def parse_arg(arg: str) -> VbaArgumentInfo:
@@ -250,7 +264,14 @@ def parse_signature(line: str) -> VbaSignatureInfo:
     """
     Parse the signature line of a VBA procedure.
     """
-    line = re.sub(r"'.*$", "", line).strip()  # Strip comment and whitespace.
+    in_string = False
+    for index, character in enumerate(line):
+        if character == '"':
+            in_string = not in_string
+        elif character == "'" and not in_string:
+            line = line[:index]
+            break
+    line = line.strip()
 
     match = re_signature.fullmatch(line)
 
