@@ -1,0 +1,16 @@
+site_name: Cross-reference example
+site_url: ""
+use_directory_urls: false
+theme: material
+nav:
+  - Consumer: index.md
+  - Widget: widget.md
+plugins:
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        vba:
+          options:
+            show_source: false
+markdown_extensions:
+  - attr_list
