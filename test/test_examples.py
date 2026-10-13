@@ -1,9 +1,10 @@
+"""
+Build example sites and check their documentation and assets.
+"""
+
 import unittest
 import warnings
-import re
 from contextlib import contextmanager
-from html import unescape
-from logging import WARNING
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Generator
@@ -11,90 +12,75 @@ from typing import Generator
 from mkdocs.commands.build import build
 from mkdocs.config import load_config
 
+from test.helpers import assert_no_warnings
+from test.site_checks import (
+    check_assets_and_links,
+    check_crossrefs,
+    check_example1,
+    check_source,
+)
+
 repo_dir = Path(__file__).resolve().parent.parent
-examples_dir = repo_dir.joinpath("examples")
+examples_dir = repo_dir / "examples"
 
 
 @contextmanager
 def tmp_build(config_file_path: Path) -> Generator[Path, None, None]:
-    with TemporaryDirectory() as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
+    """
+    Build an example into a temporary site directory.
 
-        with config_file_path.open(mode="rb") as f:
-            config = load_config(config_file=f)
-            config["site_dir"] = tmp_dir
-            build(config=config)
+    Args:
+        config_file_path: MkDocs configuration file for the example.
 
-        try:
-            yield tmp_dir
-        finally:
-            pass
+    Yields:
+        The site directory, available until the context exits.
+    """
+    with TemporaryDirectory() as temporary:
+        site = Path(temporary)
+        with config_file_path.open(mode="rb") as config_file:
+            config = load_config(config_file=config_file)
+        config["site_dir"] = site
+        build(config=config)
+        yield site
 
 
 class TestExamples(unittest.TestCase):
+    """
+    Check example output using the same assertions as installed-package CI.
+    """
+
     def test_source_display(self) -> None:
         """
-        Render original continuations, indentation, terminators, and physical line numbers.
+        Render original source, physical line numbers, and matching terminators.
         """
-        with self.assertNoLogs(level=WARNING):
+        with assert_no_warnings():
             with tmp_build(examples_dir / "example3" / "mkdocs.yml") as site:
-                html = (site / "index.html").read_text(encoding="utf-8")
-        blocks = re.findall(r'<details class="quote">(.*?)</details>', html, re.DOTALL)
-        source = (
-            (examples_dir / "example3" / "src" / "source.bas").read_text().splitlines()
-        )
-        self.assertEqual(2, len(blocks))
-        for block, first, last in zip(blocks, (6, 25), (23, 31)):
-            code = re.search(r"<code[^>]*>(.*?)</code>", block, re.DOTALL)
-            assert code is not None
-            displayed = unescape(re.sub(r"<[^>]+>", "", code[1])).splitlines()
-            self.assertEqual(source[first - 1 : last], displayed)
-            numbers = re.findall(r'<span class="normal">\s*(\d+)</span>', block)
-            self.assertEqual(list(range(first, last + 1)), [int(n) for n in numbers])
+                check_source(site=site, source=examples_dir / "example3/src")
+                check_assets_and_links(site=site, builder="mkdocs")
 
     def test_example1(self) -> None:
-        with self.assertNoLogs(level=WARNING):
-            with tmp_build(examples_dir.joinpath("example1", "mkdocs.yml")) as tmp_dir:
-                # TODO: Write assertions. For now, just check that it does not fail.
-                pass
+        """
+        Render signatures, documentation sections, anchors, source, and styles.
+        """
+        with assert_no_warnings():
+            with tmp_build(examples_dir / "example1" / "mkdocs.yml") as site:
+                check_example1(site=site)
+                check_assets_and_links(site=site, builder="mkdocs")
 
     def test_crossrefs(self) -> None:
         """
-        Resolve VBA and type references across pages without legacy markers or warnings.
+        Resolve explicit and generated references without legacy markers or warnings.
         """
-        with warnings.catch_warnings(), self.assertNoLogs(level=WARNING):
+        with warnings.catch_warnings(), assert_no_warnings():
             warnings.filterwarnings(
                 "error",
                 message="autorefs .*span.*deprecated",
                 category=DeprecationWarning,
             )
             with tmp_build(examples_dir / "example2" / "mkdocs.yml") as site:
-                html = (site / "index.html").read_text(encoding="utf-8")
-                widget = (site / "widget.html").read_text(encoding="utf-8")
-        self.assertGreaterEqual(html.count('href="widget.html#Widget"'), 3)
-        self.assertIn('href="widget.html#reset"', html)
-        self.assertIn('title="MissingType"', html)
-        self.assertIn("<code>VALUE</code>", html)
-        self.assertIn("<code>LABEL</code>", html)
-        choose_value, current_value = html.split('id="chooseValue"', 1)[1].split(
-            'id="currentValue"', 1
-        )
-        self.assertEqual(3, choose_value.count("<code>Variant</code>"))
-        self.assertEqual(1, current_value.count("<code>Variant</code>"))
-        self.assertIn(
-            "Public Function chooseValue(value, Optional fallback = 2)</code>",
-            choose_value,
-        )
-        self.assertIn("Public Property Get currentValue()</code>", current_value)
-        self.assertNotIn("<autoref ", html)
-        self.assertNotIn("data-autorefs-", html)
-        self.assertIn('id="makeWidget"', html)
-        self.assertIn('id="reset"', widget)
-        module_id = (examples_dir / "example2" / "src" / "Widget.cls").as_posix()
-        self.assertIn(f'id="{module_id}"', widget)
+                check_crossrefs(site=site, source=examples_dir / "example2/src")
+                check_assets_and_links(site=site, builder="mkdocs")
 
 
 if __name__ == "__main__":
-    unittest.main(
-        failfast=True,
-    )
+    unittest.main(failfast=True)
