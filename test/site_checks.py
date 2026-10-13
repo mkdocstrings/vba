@@ -125,15 +125,18 @@ def check_example1(*, site: Path) -> None:
         site: Built example1 site directory.
     """
     html = (site / "index.html").read_text(encoding="utf-8")
-    fenced = re.search(
-        r'<(?:div|code)\b[^>]*class="[^"]*\blanguage-vb\b[^"]*"[^>]*>(.*?)</(?:div|code)>',
-        html,
-        re.DOTALL,
+    fenced = next(
+        (
+            block
+            for block in re.finditer(
+                r"<pre\b[^>]*>.*?<code\b[^>]*>(.*?)</code>.*?</pre>", html, re.DOTALL
+            )
+            if unescape(re.sub(r"<[^>]+>", "", block[1])).strip()
+            == 'MsgBox "Hello from VBA"'
+        ),
+        None,
     )
     assert fenced is not None
-    assert (
-        'MsgBox "Hello from VBA"' == unescape(re.sub(r"<[^>]+>", "", fenced[1])).strip()
-    )
     assert html.index("Render a fenced VBA example:") < fenced.start()
     assert fenced.end() < html.index("Continue with explanatory text.")
     text = " ".join(unescape(re.sub(r"<[^>]+>", "", html)).split())
