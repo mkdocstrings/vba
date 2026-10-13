@@ -11,7 +11,7 @@ from tempfile import TemporaryDirectory
 from mkdocs.commands.build import build
 from mkdocs.config import load_config
 
-from mkdocstrings_handlers.vba._util import parse_signature
+from mkdocstrings_handlers.vba._util import parse_signature, find_procedures
 from test.helpers import assert_no_warnings
 
 
@@ -29,6 +29,8 @@ class TestSignatures(unittest.TestCase):
             "Property Get currentValue() As Long",
             "Private Sub consume(ByRef values() As Variant)",
             "Function combine(ParamArray values() As Variant)",
+            "Function values() As Long()",
+            "Function values(first As Long, second As Long) As Long()",
             "pUbLiC fUnCtIoN choose(value)",
         ):
             with self.subTest(declaration=declaration):
@@ -48,6 +50,31 @@ class TestSignatures(unittest.TestCase):
             "Public Function choose( _\n    first As Long, _\n    second As Long) As Long",
             signature.render(show_arguments=True, line_length=40),
         )
+        long_return = parse_signature(
+            "Public Function choose(value As Long, Optional fallback As Long = 2) As Long"
+        )
+        wrapped = long_return.render(show_arguments=True, line_length=40)
+        self.assertIn(") _\n    As Long", wrapped)
+        self.assertTrue(all(len(line) <= 40 for line in wrapped.splitlines()))
+
+    def test_array_return_collection(self) -> None:
+        """
+        Keep array-return procedures and their complete documentation types.
+        """
+        procedure = next(
+            find_procedures(
+                "Function values() As Long()\n    ' Return values.\n    '\n"
+                "    ' Returns:\n    '     The values.\nEnd Function\n"
+            )
+        )
+        self.assertEqual("Long()", procedure.signature.return_type)
+        assert procedure.docstring is not None
+        returns = next(
+            section
+            for section in procedure.docstring.parsed
+            if section.kind.value == "returns"
+        )
+        self.assertEqual("Long()", str(returns.value[0].annotation))
 
     def test_rendering_options(self) -> None:
         """

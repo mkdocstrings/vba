@@ -67,15 +67,18 @@ class VbaSignatureInfo:
         if not show_arguments:
             return heading
         arguments = [argument.render() for argument in self.args]
-        suffix = ")" + (f" As {self.return_type}" if self.return_type else "")
-        signature = heading + "(" + ", ".join(arguments) + suffix
+        returns = f" As {self.return_type}" if self.return_type else ""
+        signature = heading + "(" + ", ".join(arguments) + ")" + returns
         if line_length is not None and len(signature) > line_length and arguments:
-            return (
+            wrapped = (
                 heading
                 + "( _\n"
                 + ", _\n".join("    " + argument for argument in arguments)
-                + suffix
+                + ")"
             )
+            if returns and len(wrapped.rsplit("\n", 1)[-1] + returns) > line_length:
+                return wrapped + " _\n    " + returns.lstrip()
+            return wrapped + returns
         return signature
 
 

@@ -226,7 +226,7 @@ def check_source(*, site: Path, source: Path) -> None:
     ]
     assert (
         "Public Function chooseValue( _\n    value As Long, _\n"
-        "    Optional fallback As Long = 2) As Long"
+        "    Optional fallback As Long = 2) _\n    As Long"
     ) in code_blocks
     lines = (source / "source.bas").read_text(encoding="utf-8").splitlines()
     blocks = re.findall(r'<details class="quote">(.*?)</details>', html, re.DOTALL)
