@@ -177,7 +177,8 @@ class VbaModuleInfo:
         accessors = [
             member
             for member in self.procedures
-            if member.signature.name.casefold() == name.casefold()
+            # HTML identifiers are case-sensitive; preserve already distinct authored IDs.
+            if member.signature.name == name
             and member.signature.procedure_type.casefold().startswith("property ")
             and (show_if_no_docstring or member.has_docstrings)
         ]

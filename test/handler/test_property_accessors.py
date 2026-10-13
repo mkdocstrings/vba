@@ -82,6 +82,27 @@ class TestPropertyAccessors(unittest.TestCase):
             ],
         )
 
+    def test_distinct_authored_casing(self) -> None:
+        """
+        Preserve existing differently cased IDs that do not collide in HTML.
+        """
+        procedures = list(
+            find_procedures(
+                "Property Get Item()\n    ' Get an item.\nEnd Property\n"
+                "Property Set item(value)\n    ' Set an item.\nEnd Property\n"
+            )
+        )
+        module = VbaModuleInfo(
+            docstring=None, source=[], path=Path("Item.cls"), procedures=procedures
+        )
+        self.assertEqual(
+            ["Item", "item"],
+            [
+                module.procedure_anchor(procedure=p, show_if_no_docstring=False)
+                for p in procedures
+            ],
+        )
+
     def test_hidden_getter(self) -> None:
         """
         Keep a bare anchor when only a setter has visible documentation.
