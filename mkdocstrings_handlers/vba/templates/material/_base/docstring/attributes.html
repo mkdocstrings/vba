@@ -15,7 +15,7 @@
           <td><code>{{ attribute.name }}</code></td>
           <td>
             {% if attribute.annotation %}
-              {% with expression = attribute.annotation %}
+              {% with expression = attribute.annotation|vba_annotation %}
                 <code>{% include "expression.html" with context %}</code>
               {% endwith %}
             {% endif %}
@@ -32,7 +32,7 @@
       <li class="field-body">
         <b>{{ attribute.name }}</b>
         {% if attribute.annotation %}
-          {% with expression = attribute.annotation %}
+          {% with expression = attribute.annotation|vba_annotation %}
             (<code>{% include "expression.html" with context %}</code>)
           {% endwith %}
         {% endif %}
@@ -58,7 +58,7 @@
               {% if attribute.annotation %}
                 <span class="doc-attribute-annotation">
                   <b>TYPE:</b>
-                  {% with expression = attribute.annotation %}
+                  {% with expression = attribute.annotation|vba_annotation %}
                     <code>{% include "expression.html" with context %}</code>
                   {% endwith %}
                 </span>

@@ -1,6 +1,48 @@
 import re
+from typing import Any
 
+from griffe import ExprName
 from markupsafe import Markup, escape
+
+_builtin_types = {
+    "any",
+    "boolean",
+    "byte",
+    "currency",
+    "date",
+    "decimal",
+    "double",
+    "error",
+    "integer",
+    "long",
+    "longlong",
+    "longptr",
+    "object",
+    "single",
+    "string",
+    "variant",
+}
+
+
+def do_vba_annotation(annotation: Any) -> Any:
+    """
+    Make inferred custom VBA types available to the expression cross-reference template.
+
+    Args:
+        annotation: A signature type string or an already parsed Griffe annotation.
+
+    Returns:
+        A referenceable custom type, or the unchanged built-in/parsed annotation.
+    """
+    if (
+        isinstance(annotation, str)
+        and annotation.casefold() not in _builtin_types
+        and re.fullmatch(
+            r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*", annotation
+        )
+    ):
+        return ExprName(name=annotation, parent=None)
+    return annotation
 
 
 def do_crossref(path: str, brief: bool = True) -> Markup:

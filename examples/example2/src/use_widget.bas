@@ -4,13 +4,13 @@ Public Function makeWidget(value As Widget, items As Variant, missing As Missing
     ' Build a [Widget][].
     '
     ' Args:
-    '     VALUE (Widget): The input widget.
+    '     VALUE: The input widget.
     '     ITEMS (list[Widget]): The input widgets.
     '     missing (MissingType): An external type without a documentation target.
     '     LABEL: A label that stays a literal default value.
     '
     ' Returns:
-    '     Widget: The resulting widget.
+    '     The resulting widget.
 End Function
 
 Public Function chooseValue(value, Optional fallback = 2)
