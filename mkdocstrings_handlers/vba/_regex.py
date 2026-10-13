@@ -1,11 +1,13 @@
 import re
 
+type_name = r"[A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)*"
+
 re_arg = re.compile(
     r"((?P<optional>Optional) +)?"
     r"((?P<modifier>ByVal|ByRef|ParamArray) +)?"
     r"(?P<name>[A-Z_][A-Z0-9_]*)"
     r"(\(\))?"
-    r"( +As +(?P<type>[A-Z_][A-Z0-9_]*))?"
+    rf"( +As +(?P<type>{type_name}))?"
     r"( *= *(?P<default>.*))?",
     re.IGNORECASE,
 )
@@ -14,7 +16,7 @@ re_signature = re.compile(
     r"((?P<visibility>Private|Public) +)?"
     r"(?P<type>Sub|Function|Property (Let|Get)) *"
     r"(?P<name>[A-Z_][A-Z0-9_]*)\( *(?P<args>[^,]+( *, *[^,]+)*)? *\)"
-    r"( +As +(?P<returnType>[A-Z_][A-Z0-9_]*))?",
+    rf"( +As +(?P<returnType>{type_name}))?",
     re.IGNORECASE,
 )
 
