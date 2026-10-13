@@ -6,7 +6,7 @@ re_arg = re.compile(
     r"((?P<optional>Optional) +)?"
     r"((?P<modifier>ByVal|ByRef|ParamArray) +)?"
     r"(?P<name>[A-Z_][A-Z0-9_]*)"
-    r"(\(\))?"
+    r"(?P<array>\(\))?"
     rf"( +As +(?P<type>{type_name}))?"
     r"( *= *(?P<default>.*))?",
     re.IGNORECASE,

@@ -98,6 +98,7 @@ class TestParseSignature(unittest.TestCase):
                             modifier="ParamArray",
                             arg_type="Variant",
                             default=None,
+                            array=True,
                         )
                     ],
                 ),

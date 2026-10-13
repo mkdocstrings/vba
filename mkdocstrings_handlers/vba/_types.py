@@ -17,13 +17,24 @@ class VbaArgumentInfo:
 
     default: Optional[str]
 
+    array: bool = False
+    """
+    Whether the argument name has an authored array suffix.
+    """
+
     def render(self) -> str:
+        """
+        Render the authored argument type, modifiers, array suffix, and default.
+
+        Returns:
+            The VBA argument declaration.
+        """
         parts = []
         if self.optional:
             parts.append("Optional")
         if self.modifier:
             parts.append(self.modifier)
-        parts.append(self.name)
+        parts.append(self.name + ("()" if self.array else ""))
         if self.arg_type:
             parts.append(f"As {self.arg_type}")
         if self.default:
@@ -38,6 +49,34 @@ class VbaSignatureInfo:
     procedure_type: str
     name: str
     args: List[VbaArgumentInfo]
+
+    def render(self, *, show_arguments: bool, line_length: Optional[int]) -> str:
+        """
+        Render a complete declaration or a heading without its signature.
+
+        Args:
+            show_arguments: Include parameters and an explicitly authored return type.
+            line_length: Wrap long parameter lists at this width, or None to keep one line.
+
+        Returns:
+            The declaration, with VBA continuation markers when wrapped.
+        """
+        heading = " ".join(
+            part for part in (self.visibility, self.procedure_type, self.name) if part
+        )
+        if not show_arguments:
+            return heading
+        arguments = [argument.render() for argument in self.args]
+        suffix = ")" + (f" As {self.return_type}" if self.return_type else "")
+        signature = heading + "(" + ", ".join(arguments) + suffix
+        if line_length is not None and len(signature) > line_length and arguments:
+            return (
+                heading
+                + "( _\n"
+                + ", _\n".join("    " + argument for argument in arguments)
+                + suffix
+            )
+        return signature
 
 
 @dataclass

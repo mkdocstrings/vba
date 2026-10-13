@@ -59,7 +59,7 @@ End Sub
         self.assertEqual([None] * 3, [a.arg_type for a in procedure.signature.args])
         self.assertEqual("value", procedure.signature.args[0].render())
         self.assertEqual("Optional fallback = 2", procedure.signature.args[1].render())
-        self.assertEqual("ParamArray items", procedure.signature.args[2].render())
+        self.assertEqual("ParamArray items()", procedure.signature.args[2].render())
         self.assertNotIn("As Variant", "\n".join(procedure.source))
 
     def test_untyped_returns(self) -> None:

@@ -13,10 +13,9 @@
           toc_label=procedure.signature.name ~ "()") %}
 
         {% if config.separate_signature %}
-            {{ procedure.signature.visibility }} {{ procedure.signature.procedure_type }} {{ procedure.signature.name }}()
+            {{ procedure.signature.render(show_arguments=False, line_length=none) }}
         {% else %}
           {% filter highlight(language="vba", inline=True) %}
-            {{ procedure.signature.visibility }} {{ procedure.signature.procedure_type }} {{ procedure.signature.name }}
             {% include "signature.html" with context %}
           {% endfilter %}
         {% endif %}
@@ -27,11 +26,8 @@
 
       {% endfilter %}
 
-      {% if config.separate_signature %}
-        {% filter highlight(language="vba", inline=False) %}
-          {{ procedure.signature.name }}
-          {% include "signature.html" with context %}
-        {% endfilter %}
+      {% if config.separate_signature and config.show_signature %}
+        {{ procedure.signature.render(show_arguments=True, line_length=config.line_length)|highlight(language="vba", inline=False, dedent=False) }}
       {% endif %}
 
     {% else %}
