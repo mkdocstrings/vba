@@ -7,6 +7,8 @@ from typing import Any, Sequence
 from griffe import Alias, Object
 from mkdocstrings import CollectorItem
 
+from ._types import VbaProcedureInfo
+
 
 class Order(enum.Enum):
     """
@@ -33,6 +35,24 @@ order_map = {
     Order.alphabetical: _sort_key_alphabetical,
     Order.source: _sort_key_source,
 }
+
+
+def do_order_procedures(
+    procedures: Sequence[VbaProcedureInfo], *, order: Order
+) -> Sequence[VbaProcedureInfo]:
+    """
+    Order VBA procedures using their authored names or physical source locations.
+
+    Args:
+        procedures: The module procedures to order without mutating their collection.
+        order: Alphabetical or source ordering requested by the directive.
+
+    Returns:
+        A separately ordered sequence, preserving source order for equal names.
+    """
+    if order is Order.source:
+        return sorted(procedures, key=lambda procedure: procedure.first_line)
+    return sorted(procedures, key=lambda procedure: procedure.signature.name.casefold())
 
 
 def do_order_members(

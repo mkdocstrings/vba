@@ -22,7 +22,7 @@ from mkdocs.exceptions import PluginError
 from mkdocstrings import BaseHandler, CollectionError, get_logger
 
 from ._crossref import do_crossref, do_multi_crossref, do_vba_annotation
-from ._sort import Order, do_order_members
+from ._sort import Order, do_order_members, do_order_procedures
 from ._types import VbaModuleInfo
 from ._util import find_file_docstring, find_procedures
 
@@ -259,6 +259,7 @@ class VbaHandler(BaseHandler):
         self.env.filters["multi_crossref"] = do_multi_crossref
         self.env.filters["vba_annotation"] = do_vba_annotation
         self.env.filters["order_members"] = do_order_members
+        self.env.filters["order_procedures"] = do_order_procedures
 
     def get_aliases(self, identifier: str) -> Tuple[str, ...]:
         """Get the aliases of the given identifier.
