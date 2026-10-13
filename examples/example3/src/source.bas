@@ -27,5 +27,5 @@ Public Sub later(value)
     '
     ' Args:
     '     value: The input value.
-    value = 2
+    value = 2 ' This underscore is comment text: _
 End Sub

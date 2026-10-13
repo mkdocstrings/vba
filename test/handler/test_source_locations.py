@@ -10,6 +10,7 @@ from griffe import Function, Module
 
 from mkdocstrings_handlers.vba import get_handler
 from mkdocstrings_handlers.vba._util import (
+    _logical_lines,
     collapse_long_lines,
     find_file_docstring,
     find_procedures,
@@ -134,6 +135,54 @@ class TestSourceLocations(unittest.TestCase):
         self.assertEqual(lines, procedure.source)
         assert procedure.docstring is not None
         self.assertEqual("Keep this underscore _", procedure.docstring.value)
+
+    def test_inline_comment_underscore(self) -> None:
+        """
+        Keep inline comment underscores from swallowing terminators and later procedures.
+        """
+        for statement in (
+            "    value = 1 ' explanation _",
+            "    value = \"don't\" ' explanation _",
+            '    value = "say ""it\'s done""" \' explanation _',
+        ):
+            with self.subTest(statement=statement):
+                lines = ["Sub first()", "    ' First.", statement, "End Sub"]
+                later = ["Sub later()", "    ' Later.", "End Sub"]
+                procedures = list(find_procedures("\n".join(lines + later)))
+                self.assertEqual(
+                    ["first", "later"], [p.signature.name for p in procedures]
+                )
+                self.assertEqual(lines, procedures[0].source)
+                self.assertEqual(
+                    (1, 4), (procedures[0].first_line, procedures[0].last_line)
+                )
+                self.assertEqual(later, procedures[1].source)
+                final_procedure = list(find_procedures("\n".join(lines)))
+                self.assertEqual(1, len(final_procedure))
+                self.assertEqual(lines, final_procedure[0].source)
+
+    def test_terminator_comment_underscore(self) -> None:
+        """
+        Keep an underscore in a terminator comment from absorbing the next signature.
+        """
+        lines = ["Sub first()", "    ' First.", "End Sub ' explanation _"]
+        later = ["Sub later()", "    ' Later.", "End Sub"]
+        first, second = find_procedures("\n".join(lines + later))
+        self.assertEqual(lines, first.source)
+        self.assertEqual((1, 3), (first.first_line, first.last_line))
+        self.assertEqual(later, second.source)
+
+    def test_quoted_apostrophes_in_continuations(self) -> None:
+        """
+        Continue code containing apostrophes and escaped quotes inside string literals.
+        """
+        for expression in ('"don\'t"', '"say ""it\'s done"""'):
+            with self.subTest(expression=expression):
+                lines = [f"value = {expression} & _", '    " next"']
+                self.assertEqual(
+                    [(f'value = {expression} &     " next"', 1, 2)],
+                    list(_logical_lines(lines=lines)),
+                )
 
     def test_file_docstring_stops_before_continued_signature(self) -> None:
         """
