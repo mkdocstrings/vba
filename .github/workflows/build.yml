@@ -6,7 +6,19 @@ jobs:
   build:
     strategy:
       matrix:
-        builder: ['mkdocs', 'zensical']
+        include:
+          - builder: mkdocs
+            mkdocstrings: '1.0.7'
+            pymdown: '>=12.2'
+          # Compatibility workaround for mkdocstrings 0.30.1:
+          # PyMdown >=12.2 requires the new Highlight constructor.
+          # Zensical needs >=11; remove the upper bound when dropping 0.30.1.
+          - builder: zensical
+            mkdocstrings: '0.30.1'
+            pymdown: '>=11,<12.2'
+          - builder: zensical
+            mkdocstrings: '1.0.7'
+            pymdown: '>=12.2'
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -26,7 +38,9 @@ jobs:
         run: python -m twine check --strict dist/*
       - name: Install wheel
         run: |
-          python -m pip install dist/*.whl
+          python -m pip install dist/*.whl \
+            "mkdocstrings==${{ matrix.mkdocstrings }}" \
+            "pymdown-extensions${{ matrix.pymdown }}"
           python -m pip check
       - name: Check base installation excludes Material
         run: python -c "from importlib.util import find_spec; assert find_spec('material') is None"
@@ -39,6 +53,8 @@ jobs:
           python -m pip install zensical==0.0.70
           python -c "from importlib.util import find_spec; assert find_spec('material') is None"
       - name: Check installed package outside checkout
+        env:
+          BUILDER: ${{ matrix.builder }}
         run: |
           for example in example1 example2 example3
           do
@@ -53,10 +69,20 @@ jobs:
           from importlib.resources import files
           from html import unescape
           from pathlib import Path
+          import os
           import re
 
           for package in ("mkdocstrings_handlers", "mkdocstrings_handlers.vba"):
               assert files(package).joinpath("py.typed").is_file(), package
+          bundled_css = files("mkdocstrings_handlers.vba").joinpath("templates/material/style.css").read_text()
+          for example in ("example1", "example2", "example3"):
+              page = Path(example, "site/index.html").read_text(encoding="utf-8")
+              if os.environ["BUILDER"] == "zensical":
+                  styles = re.findall(r"<style data-mkdocstrings-vba[^>]*>(.*?)</style>", page, re.DOTALL)
+                  assert styles and all(style.strip() == bundled_css.strip() for style in styles)
+              else:
+                  assert "data-mkdocstrings-vba" not in page
+                  assert bundled_css.strip() in Path(example, "site/assets/_mkdocstrings.css").read_text()
           html = Path("example1/site/index.html").read_text(encoding="utf-8")
           assert "fuzz_HotelEcho_helper" in html
           assert "The worksheet" in html
