@@ -1,0 +1,33 @@
+site_name: mkdocstrings-vba
+site_description: Documentation from VBA source comments, with a live showcase.
+site_url: https://mkdocstrings.github.io/vba/
+repo_url: https://github.com/mkdocstrings/vba
+repo_name: mkdocstrings/vba
+docs_dir: docs/src
+site_dir: docs/site
+edit_uri: edit/master/docs/src/
+
+nav:
+  - Getting started: index.md
+  - Usage: usage.md
+  - Showcase: showcase.md
+
+theme:
+  name: material
+  features:
+    - content.action.edit
+    - content.code.copy
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        vba: {}
+
+markdown_extensions:
+  - tables
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      check_paths: true
