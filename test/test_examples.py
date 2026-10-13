@@ -52,6 +52,8 @@ class TestExamples(unittest.TestCase):
         self.assertGreaterEqual(html.count('href="widget.html#Widget"'), 3)
         self.assertIn('href="widget.html#reset"', html)
         self.assertIn('title="MissingType"', html)
+        self.assertIn("<code>VALUE</code>", html)
+        self.assertIn("<code>LABEL</code>", html)
         self.assertNotIn("<autoref ", html)
         self.assertNotIn("data-autorefs-", html)
         self.assertIn('id="makeWidget"', html)

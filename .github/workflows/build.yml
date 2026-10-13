@@ -62,6 +62,8 @@ jobs:
           assert crossrefs.count('href="widget.html#Widget"') >= 3
           assert 'href="widget.html#reset"' in crossrefs
           assert 'title="MissingType"' in crossrefs
+          assert "<code>VALUE</code>" in crossrefs
+          assert "<code>LABEL</code>" in crossrefs
           assert "<autoref " not in crossrefs
           assert "data-autorefs-" not in crossrefs
           PY

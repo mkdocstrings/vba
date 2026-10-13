@@ -1,5 +1,5 @@
 import re
-from typing import List, Generator, Tuple
+from typing import List, Generator, Tuple, Union
 
 from griffe import Docstring, Function, Parameters, Parameter, Parser
 
@@ -9,6 +9,51 @@ from ._types import (
     VbaSignatureInfo,
     VbaProcedureInfo,
 )
+
+
+class _VbaParameters(Parameters):
+    """
+    Adapt Griffe's parameter lookup to VBA's case-insensitive names.
+    """
+
+    def __getitem__(self, name_or_index: Union[int, str]) -> Parameter:
+        """
+        Retrieve a parameter by position or case-insensitive name.
+
+        Args:
+            name_or_index: Position or name, optionally prefixed with Griffe's stars.
+
+        Returns:
+            The original parameter, retaining its declared spelling.
+
+        Raises:
+            IndexError: If the position is outside the parameter list.
+            KeyError: If the name does not match any declared parameter.
+        """
+        if isinstance(name_or_index, int):
+            return super().__getitem__(name_or_index)
+        name = name_or_index.lstrip("*").casefold()
+        for index in range(len(self)):
+            parameter = super().__getitem__(index)
+            if parameter.name.casefold() == name:
+                return parameter
+        raise KeyError(f"parameter {name_or_index} not found")
+
+    def __contains__(self, param_name: str) -> bool:
+        """
+        Check whether a case-insensitive parameter name is declared.
+
+        Args:
+            param_name: Name, optionally prefixed with Griffe's stars.
+
+        Returns:
+            Whether a matching parameter exists.
+        """
+        try:
+            self[param_name]
+        except KeyError:
+            return False
+        return True
 
 
 def is_signature(line: str) -> bool:
@@ -131,6 +176,15 @@ def parse_signature(line: str) -> VbaSignatureInfo:
 
 
 def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
+    """
+    Collect VBA procedures with parameter-aware Google docstrings.
+
+    Args:
+        code: VBA source with continuation lines already collapsed.
+
+    Yields:
+        Procedures with their original signatures, source, and docstrings.
+    """
     lines = code.splitlines()
 
     procedure: Tuple[VbaSignatureInfo, int] | None = None
@@ -171,7 +225,7 @@ def find_procedures(code: str) -> Generator[VbaProcedureInfo, None, None]:
                 lineno=first_line + 1,
                 parent=Function(
                     name=signature.name,
-                    parameters=Parameters(
+                    parameters=_VbaParameters(
                         *(
                             Parameter(
                                 name=arg.name,
